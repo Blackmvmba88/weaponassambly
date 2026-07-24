@@ -7,9 +7,10 @@ from pathlib import Path
 
 from . import __version__
 from .assembly import plan_build
+from .catalog import registered_platforms
 from .io import load_build
 from .manifest import build_manifest
-from .registry import PLATFORMS
+from .registry import platform_modules
 from .scene import load_scene_manifest, validate_scene_manifest
 from .validator import validate_build
 
@@ -31,8 +32,24 @@ def cmd_validate(path: str) -> int:
     return 0
 
 
+def cmd_catalog_validate() -> int:
+    try:
+        platforms = registered_platforms()
+    except (OSError, ValueError) as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
+
+    print(f"OK: {len(platforms)} platform catalog(s): {', '.join(platforms)}")
+    return 0
+
+
 def cmd_inspect(platform: str) -> int:
-    slots = PLATFORMS.get(platform)
+    try:
+        slots = platform_modules(platform)
+    except (OSError, ValueError) as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
+
     if slots is None:
         print(f"ERROR: unknown platform: {platform}", file=sys.stderr)
         return 1
@@ -115,6 +132,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--version", action="version", version=__version__)
     subparsers = parser.add_subparsers(dest="command", required=True)
 
+    subparsers.add_parser("catalog-validate", help="validate all packaged platform catalogs")
+
     validate = subparsers.add_parser("validate", help="validate a build JSON file")
     validate.add_argument("path")
 
@@ -140,6 +159,8 @@ def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
 
+    if args.command == "catalog-validate":
+        return cmd_catalog_validate()
     if args.command == "validate":
         return cmd_validate(args.path)
     if args.command == "inspect":
