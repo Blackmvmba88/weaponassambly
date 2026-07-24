@@ -14,7 +14,6 @@ from dataclasses import dataclass
 
 import bpy
 
-
 ROOT_NAME = "BM_SIDEARM_ROOT"
 PLATFORM_COLLECTION = "BM_S7"
 REQUIRED_COLLECTIONS = (
