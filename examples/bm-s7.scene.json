@@ -1,0 +1,44 @@
+{
+  "scene_schema_version": 1,
+  "platform": "BM-S7",
+  "root": "BM_SIDEARM_ROOT",
+  "collections": [
+    "00_ROOT",
+    "10_CORE",
+    "20_TOP",
+    "30_FRONT",
+    "40_BOTTOM",
+    "50_MAG",
+    "60_COSMETICS",
+    "70_SOCKETS",
+    "80_RIG",
+    "90_GUIDES"
+  ],
+  "sockets": {
+    "SOCKET_TOP": {
+      "location": [0.0, 0.15, 0.08],
+      "rotation_euler": [0.0, 0.0, 0.0],
+      "scale": [1.0, 1.0, 1.0]
+    },
+    "SOCKET_BOTTOM": {
+      "location": [0.0, 0.05, -0.05],
+      "rotation_euler": [0.0, 0.0, 0.0],
+      "scale": [1.0, 1.0, 1.0]
+    },
+    "SOCKET_FRONT": {
+      "location": [0.0, 0.25, 0.0],
+      "rotation_euler": [0.0, 0.0, 0.0],
+      "scale": [1.0, 1.0, 1.0]
+    },
+    "SOCKET_MAG": {
+      "location": [0.0, -0.05, -0.12],
+      "rotation_euler": [0.0, 0.0, 0.0],
+      "scale": [1.0, 1.0, 1.0]
+    },
+    "SOCKET_GRIP": {
+      "location": [0.0, -0.08, -0.08],
+      "rotation_euler": [0.0, 0.0, 0.0],
+      "scale": [1.0, 1.0, 1.0]
+    }
+  }
+}
