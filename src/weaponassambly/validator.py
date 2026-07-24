@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .models import BuildConfig, Slot
-from .registry import COSMETICS, cosmetic_allowed, module_allowed, platform_exists
+from .registry import cosmetic_allowed, cosmetic_kinds, module_allowed, platform_exists
 
 
 @dataclass(frozen=True, slots=True)
@@ -36,8 +36,9 @@ def validate_build(build: BuildConfig) -> ValidationResult:
                     f"module {module!r} is not registered for {build.platform}:{slot}"
                 )
 
+    valid_cosmetic_kinds = cosmetic_kinds()
     for kind, value in build.cosmetics.items():
-        if kind not in COSMETICS:
+        if kind not in valid_cosmetic_kinds:
             errors.append(f"unknown cosmetic kind: {kind}")
             continue
         if value is None:
