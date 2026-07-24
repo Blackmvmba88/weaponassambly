@@ -17,7 +17,7 @@ from .validator import validate_build
 def cmd_validate(path: str) -> int:
     try:
         build = load_build(path)
-    except (OSError, ValueError, json.JSONDecodeError) as exc:
+    except (OSError, ValueError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2
 
@@ -48,7 +48,7 @@ def cmd_inspect(platform: str) -> int:
 def _load_validated(path: str):
     try:
         build = load_build(path)
-    except (OSError, ValueError, json.JSONDecodeError) as exc:
+    except (OSError, ValueError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return None, 2
 
@@ -96,7 +96,7 @@ def cmd_manifest(path: str, output: str | None) -> int:
 def cmd_scene_validate(path: str) -> int:
     try:
         manifest = load_scene_manifest(path)
-    except (OSError, ValueError, json.JSONDecodeError) as exc:
+    except (OSError, ValueError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2
 
