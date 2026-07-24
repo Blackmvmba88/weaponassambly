@@ -10,7 +10,6 @@ create any functional weapon mechanism.
 
 from __future__ import annotations
 
-import sys
 from dataclasses import dataclass
 
 import bpy
