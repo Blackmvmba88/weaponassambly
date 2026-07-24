@@ -1,0 +1,40 @@
+# Blender
+*.blend1
+*.blend2
+*.blend3
+*.blend@*
+
+# Blender autosave / temporary
+*.blend.autosave
+*.tmp
+
+# Render outputs
+renders/
+output/
+
+# Exported binaries
+exports/*.fbx
+exports/*.glb
+exports/*.gltf
+exports/*.obj
+
+# Texture working files / generated caches
+textures/cache/
+*.tx
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
