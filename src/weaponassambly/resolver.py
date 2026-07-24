@@ -9,7 +9,6 @@ from .models import BuildConfig
 from .scene import validate_scene_manifest
 from .validator import validate_build
 
-
 RESOLVER_VERSION = 1
 
 
