@@ -6,11 +6,13 @@ import sys
 from pathlib import Path
 
 from . import __version__
+from .adapters.registry import adapter_names, get_adapter
 from .assembly import plan_build
 from .catalog import registered_platforms
 from .io import load_build
 from .manifest import build_manifest
 from .registry import platform_modules
+from .resolver import resolve_build
 from .scene import load_scene_manifest, validate_scene_manifest
 from .validator import validate_build
 
@@ -127,6 +129,37 @@ def cmd_scene_validate(path: str) -> int:
     return 0
 
 
+def cmd_resolve(
+    build_path: str,
+    scene_path: str,
+    adapter_name: str,
+    output: str | None,
+) -> int:
+    build, code = _load_validated(build_path)
+    if build is None:
+        return code
+
+    try:
+        scene_manifest = load_scene_manifest(scene_path)
+        resolved = resolve_build(build, scene_manifest)
+        adapter = get_adapter(adapter_name)
+        data = adapter.emit(resolved)
+    except (OSError, ValueError) as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
+
+    payload = json.dumps(data, indent=2, sort_keys=True) + "\n"
+    if output is None:
+        print(payload, end="")
+        return 0
+
+    target = Path(output)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(payload, encoding="utf-8")
+    print(f"WROTE: {target}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="bmwa", description="BlackMamba assembly runtime")
     parser.add_argument("--version", action="version", version=__version__)
@@ -152,6 +185,14 @@ def build_parser() -> argparse.ArgumentParser:
     )
     scene_validate.add_argument("path")
 
+    resolve = subparsers.add_parser(
+        "resolve", help="resolve a build against Blender socket transforms"
+    )
+    resolve.add_argument("build")
+    resolve.add_argument("scene")
+    resolve.add_argument("--adapter", choices=adapter_names(), default="generic-json")
+    resolve.add_argument("-o", "--output")
+
     return parser
 
 
@@ -171,6 +212,8 @@ def main() -> int:
         return cmd_manifest(args.path, args.output)
     if args.command == "scene-validate":
         return cmd_scene_validate(args.path)
+    if args.command == "resolve":
+        return cmd_resolve(args.build, args.scene, args.adapter, args.output)
 
     parser.error("unknown command")
     return 2
