@@ -5,7 +5,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-
 SCENE_SCHEMA_VERSION = 1
 REQUIRED_ROOT = "BM_SIDEARM_ROOT"
 REQUIRED_SOCKETS = frozenset(
