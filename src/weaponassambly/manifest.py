@@ -6,7 +6,6 @@ from typing import Any
 from .assembly import plan_build
 from .models import BuildConfig
 
-
 MANIFEST_VERSION = 1
 
 
