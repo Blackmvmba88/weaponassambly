@@ -58,5 +58,8 @@ jobs:
       - name: Tests
         run: pytest
 
+      - name: Validate packaged catalogs
+        run: bmwa catalog-validate
+
       - name: Validate example build
         run: bmwa validate configs/bm-s7.example.json
