@@ -63,3 +63,15 @@ jobs:
 
       - name: Validate example build
         run: bmwa validate configs/bm-s7.example.json
+
+      - name: Validate scene fixture
+        run: bmwa scene-validate examples/bm-s7.scene.json
+
+      - name: Resolve build against scene
+        run: |
+          bmwa resolve \
+            configs/bm-s7.example.json \
+            examples/bm-s7.scene.json \
+            --adapter generic-json \
+            --output /tmp/bm-s7.resolved.json
+          test -s /tmp/bm-s7.resolved.json
