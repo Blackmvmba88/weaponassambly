@@ -68,7 +68,7 @@ def validate_scene_manifest(data: dict[str, Any]) -> SceneValidationResult:
             if not isinstance(value, list) or len(value) != 3:
                 errors.append(f"socket {socket_name}.{field} must contain 3 numbers")
                 continue
-            if not all(isinstance(component, (int, float)) for component in value):
+            if not all(isinstance(component, int | float) for component in value):
                 errors.append(f"socket {socket_name}.{field} must contain only numbers")
         scale = transform.get("scale")
         if isinstance(scale, list) and len(scale) == 3:
