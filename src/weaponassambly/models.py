@@ -22,7 +22,7 @@ class BuildConfig:
     assembly: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
-    def from_mapping(cls, data: dict[str, Any]) -> "BuildConfig":
+    def from_mapping(cls, data: dict[str, Any]) -> BuildConfig:
         return cls(
             schema_version=int(data.get("schema_version", 1)),
             platform=str(data.get("platform", "")),
