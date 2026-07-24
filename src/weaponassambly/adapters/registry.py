@@ -3,7 +3,6 @@ from __future__ import annotations
 from .base import EngineAdapter
 from .generic_json import GenericJsonAdapter
 
-
 _ADAPTERS: dict[str, EngineAdapter] = {
     GenericJsonAdapter.name: GenericJsonAdapter(),
 }
