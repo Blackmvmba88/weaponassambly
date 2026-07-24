@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "platform": "BM-S7",
+  "display_name": "BM-S7 Phantom",
+  "modules": {
+    "top": "MAMBA_RD01",
+    "bottom": "X_TAC",
+    "front": null,
+    "mag": "DUAL"
+  },
+  "cosmetics": {
+    "finish": "polished_black",
+    "grip": "serpent_scale",
+    "engraving": "BLACKMAMBA"
+  },
+  "assembly": {
+    "animation": "assemble_default",
+    "explode_view": true
+  }
+}
