@@ -9,7 +9,7 @@ from .models import BuildConfig
 
 def load_json(path: str | Path) -> dict[str, Any]:
     file_path = Path(path)
-    with file_path.open("r", encoding="utf-8") as handle:
+    with file_path.open(encoding="utf-8") as handle:
         data = json.load(handle)
     if not isinstance(data, dict):
         raise ValueError("build config root must be a JSON object")
