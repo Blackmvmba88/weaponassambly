@@ -1,0 +1,29 @@
+{
+  "catalog_version": 1,
+  "platform": "BM-S7",
+  "display_name": "BlackMamba S7",
+  "root": "BM_SIDEARM_ROOT",
+  "slots": {
+    "top": {
+      "socket": "SOCKET_TOP",
+      "modules": ["MAMBA_RD01", "THERMAL_MK1"]
+    },
+    "bottom": {
+      "socket": "SOCKET_BOTTOM",
+      "modules": ["X_TAC", "LIGHT_MK1"]
+    },
+    "front": {
+      "socket": "SOCKET_FRONT",
+      "modules": ["COSMETIC_FRONT_A"]
+    },
+    "mag": {
+      "socket": "SOCKET_MAG",
+      "modules": ["STANDARD", "DUAL"]
+    }
+  },
+  "cosmetics": {
+    "finish": ["polished_black", "chrome", "gunmetal"],
+    "grip": ["serpent_scale", "smooth", "hex"],
+    "engraving": ["BLACKMAMBA", "BM_S7", "NONE"]
+  }
+}
