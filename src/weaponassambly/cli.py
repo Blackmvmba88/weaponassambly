@@ -10,6 +10,7 @@ from .assembly import plan_build
 from .io import load_build
 from .manifest import build_manifest
 from .registry import PLATFORMS
+from .scene import load_scene_manifest, validate_scene_manifest
 from .validator import validate_build
 
 
@@ -92,6 +93,23 @@ def cmd_manifest(path: str, output: str | None) -> int:
     return 0
 
 
+def cmd_scene_validate(path: str) -> int:
+    try:
+        manifest = load_scene_manifest(path)
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
+
+    result = validate_scene_manifest(manifest)
+    if not result.ok:
+        for error in result.errors:
+            print(f"ERROR: {error}", file=sys.stderr)
+        return 1
+
+    print(f"OK: scene {manifest['platform']} / {manifest['root']}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="bmwa", description="BlackMamba assembly runtime")
     parser.add_argument("--version", action="version", version=__version__)
@@ -110,6 +128,11 @@ def build_parser() -> argparse.ArgumentParser:
     manifest.add_argument("path")
     manifest.add_argument("-o", "--output")
 
+    scene_validate = subparsers.add_parser(
+        "scene-validate", help="validate a Blender-exported scene manifest"
+    )
+    scene_validate.add_argument("path")
+
     return parser
 
 
@@ -125,6 +148,8 @@ def main() -> int:
         return cmd_plan(args.path)
     if args.command == "manifest":
         return cmd_manifest(args.path, args.output)
+    if args.command == "scene-validate":
+        return cmd_scene_validate(args.path)
 
     parser.error("unknown command")
     return 2
