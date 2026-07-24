@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from enum import IntEnum
 
 from .models import BuildConfig
+from .registry import canonical_socket
 from .validator import validate_build
 
 
@@ -15,13 +16,6 @@ class AssemblyStage(IntEnum):
     MAG = 40
     COSMETICS = 50
 
-
-SLOT_TO_SOCKET: dict[str, str] = {
-    "top": "SOCKET_TOP",
-    "bottom": "SOCKET_BOTTOM",
-    "front": "SOCKET_FRONT",
-    "mag": "SOCKET_MAG",
-}
 
 SLOT_TO_STAGE: dict[str, AssemblyStage] = {
     "front": AssemblyStage.FRONT,
@@ -62,19 +56,23 @@ def plan_build(build: BuildConfig) -> AssemblyPlan:
 
     pending.sort(key=lambda item: (int(item[0]), item[1], item[2]))
 
-    steps = tuple(
-        AssemblyStep(
-            order=index,
-            stage=stage,
-            slot=slot,
-            module=module,
-            socket=SLOT_TO_SOCKET[slot],
+    steps: list[AssemblyStep] = []
+    for index, (stage, slot, module) in enumerate(pending, start=1):
+        socket = canonical_socket(build.platform, slot)
+        if socket is None:
+            raise RuntimeError(f"catalog has no canonical socket for {build.platform}:{slot}")
+        steps.append(
+            AssemblyStep(
+                order=index,
+                stage=stage,
+                slot=slot,
+                module=module,
+                socket=socket,
+            )
         )
-        for index, (stage, slot, module) in enumerate(pending, start=1)
-    )
 
     return AssemblyPlan(
         platform=build.platform,
         display_name=build.display_name or build.platform,
-        steps=steps,
+        steps=tuple(steps),
     )
