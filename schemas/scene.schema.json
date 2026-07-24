@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://blackmamba.local/schemas/scene.schema.json",
+  "title": "BlackMamba Scene Manifest",
+  "type": "object",
+  "required": [
+    "scene_schema_version",
+    "platform",
+    "root",
+    "collections",
+    "sockets"
+  ],
+  "properties": {
+    "scene_schema_version": {
+      "const": 1
+    },
+    "platform": {
+      "const": "BM-S7"
+    },
+    "root": {
+      "const": "BM_SIDEARM_ROOT"
+    },
+    "collections": {
+      "type": "array",
+      "items": {"type": "string"},
+      "uniqueItems": true
+    },
+    "sockets": {
+      "type": "object",
+      "required": [
+        "SOCKET_TOP",
+        "SOCKET_BOTTOM",
+        "SOCKET_FRONT",
+        "SOCKET_MAG",
+        "SOCKET_GRIP"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "SOCKET_TOP": {"$ref": "#/$defs/transform"},
+        "SOCKET_BOTTOM": {"$ref": "#/$defs/transform"},
+        "SOCKET_FRONT": {"$ref": "#/$defs/transform"},
+        "SOCKET_MAG": {"$ref": "#/$defs/transform"},
+        "SOCKET_GRIP": {"$ref": "#/$defs/transform"}
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "vec3": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "number"},
+        {"type": "number"},
+        {"type": "number"}
+      ],
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "transform": {
+      "type": "object",
+      "required": ["location", "rotation_euler", "scale"],
+      "properties": {
+        "location": {"$ref": "#/$defs/vec3"},
+        "rotation_euler": {"$ref": "#/$defs/vec3"},
+        "scale": {"$ref": "#/$defs/vec3"}
+      },
+      "additionalProperties": false
+    }
+  }
+}
