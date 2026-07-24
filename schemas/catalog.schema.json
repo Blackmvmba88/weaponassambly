@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://blackmamba.local/schemas/catalog.schema.json",
+  "title": "BlackMamba Platform Catalog",
+  "type": "object",
+  "required": ["catalog_version", "platform", "display_name", "root", "slots", "cosmetics"],
+  "properties": {
+    "catalog_version": {"const": 1},
+    "platform": {"type": "string", "minLength": 1},
+    "display_name": {"type": "string", "minLength": 1},
+    "root": {"type": "string", "minLength": 1},
+    "slots": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "required": ["socket", "modules"],
+        "properties": {
+          "socket": {"type": "string", "pattern": "^SOCKET_[A-Z0-9_]+$"},
+          "modules": {
+            "type": "array",
+            "items": {"type": "string", "minLength": 1},
+            "uniqueItems": true
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "cosmetics": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {"type": "string", "minLength": 1},
+        "uniqueItems": true
+      }
+    }
+  },
+  "additionalProperties": false
+}
