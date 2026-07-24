@@ -17,7 +17,6 @@ from pathlib import Path
 
 import bpy
 
-
 PLATFORM = "BM-S7"
 ROOT_NAME = "BM_SIDEARM_ROOT"
 SOCKETS = (
