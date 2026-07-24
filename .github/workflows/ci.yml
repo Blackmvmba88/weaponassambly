@@ -36,12 +36,19 @@ jobs:
           set -o pipefail
           ruff check . --output-format=concise 2>&1 | tee ruff-report.txt
 
-      - name: Upload Ruff report
+      - name: Ruff suggested diff
+        if: steps.ruff.outcome == 'failure'
+        run: ruff check . --fix --diff > ruff-fix.diff 2>&1 || true
+
+      - name: Upload Ruff diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ruff-report-${{ matrix.python-version }}
-          path: ruff-report.txt
+          path: |
+            ruff-report.txt
+            ruff-fix.diff
+          if-no-files-found: ignore
           retention-days: 3
 
       - name: Enforce Ruff result
