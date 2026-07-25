@@ -17,4 +17,16 @@ def load_json(path: str | Path) -> dict[str, Any]:
 
 
 def load_build(path: str | Path) -> BuildConfig:
-    return BuildConfig.from_mapping(load_json(path))
+    data = load_json(path)
+    missing = [
+        key
+        for key in ("schema_version", "platform", "modules", "cosmetics")
+        if key not in data
+    ]
+    if missing:
+        raise ValueError(f"missing required keys: {', '.join(missing)}")
+    if not isinstance(data.get("modules"), dict):
+        raise ValueError("modules must be a JSON object")
+    if not isinstance(data.get("cosmetics"), dict):
+        raise ValueError("cosmetics must be a JSON object")
+    return BuildConfig.from_mapping(data)
