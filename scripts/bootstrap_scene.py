@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import bpy
 
-
 ROOT_NAME = "BM_SIDEARM_ROOT"
 PLATFORM_COLLECTION = "BM_S7"
 

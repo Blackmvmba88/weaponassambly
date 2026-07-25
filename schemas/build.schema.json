@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://blackmamba.local/schemas/build.schema.json",
+  "title": "BlackMamba Build Configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "platform", "modules", "cosmetics"],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "platform": {
+      "type": "string",
+      "minLength": 1
+    },
+    "display_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "modules": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "top": {"type": ["string", "null"]},
+        "bottom": {"type": ["string", "null"]},
+        "front": {"type": ["string", "null"]},
+        "mag": {"type": ["string", "null"]}
+      }
+    },
+    "cosmetics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "finish": {"type": ["string", "null"]},
+        "grip": {"type": ["string", "null"]},
+        "engraving": {"type": ["string", "null"]}
+      }
+    },
+    "assembly": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  }
+}
