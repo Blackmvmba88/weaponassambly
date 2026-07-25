@@ -18,10 +18,12 @@ def validate_build(build: BuildConfig) -> ValidationResult:
     if build.schema_version != 1:
         errors.append(f"unsupported schema_version: {build.schema_version}")
 
-    if not build.platform:
+    platform = build.platform
+    platform_ok = bool(platform) and platform_exists(platform)
+    if not platform:
         errors.append("platform is required")
-    elif not platform_exists(build.platform):
-        errors.append(f"unknown platform: {build.platform}")
+    elif not platform_ok:
+        errors.append(f"unknown platform: {platform}")
 
     valid_slots = {slot.value for slot in Slot}
     for slot, module in build.modules.items():
@@ -30,11 +32,11 @@ def validate_build(build: BuildConfig) -> ValidationResult:
             continue
         if module is None:
             continue
-        if build.platform and platform_exists(build.platform):
-            if not module_allowed(build.platform, slot, module):
-                errors.append(
-                    f"module {module!r} is not registered for {build.platform}:{slot}"
-                )
+        if not isinstance(module, str):
+            errors.append(f"module value for {slot} must be a string or null")
+            continue
+        if platform_ok and not module_allowed(platform, slot, module):
+            errors.append(f"module {module!r} is not registered for {platform}:{slot}")
 
     valid_cosmetic_kinds = cosmetic_kinds()
     for kind, value in build.cosmetics.items():
