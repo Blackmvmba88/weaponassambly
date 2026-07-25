@@ -2,7 +2,11 @@ from __future__ import annotations
 
 import pytest
 
-from weaponassambly.parametric import ObjectDescriptor, axial_body_recipe, validate_descriptor
+from weaponassambly.parametric import (
+    ObjectDescriptor,
+    axial_body_recipe,
+    validate_descriptor,
+)
 
 
 def test_axial_body_descriptor_validates() -> None:
