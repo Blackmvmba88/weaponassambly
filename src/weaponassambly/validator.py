@@ -45,10 +45,10 @@ def validate_build(build: BuildConfig) -> ValidationResult:
             continue
         if value is None:
             continue
-        if build.platform and platform_exists(build.platform):
-            if not cosmetic_allowed(kind, value, build.platform):
-                errors.append(
-                    f"cosmetic {kind}={value!r} is not registered for {build.platform}"
-                )
+        if not isinstance(value, str):
+            errors.append(f"cosmetic {kind} value must be a string or null")
+            continue
+        if platform_ok and not cosmetic_allowed(kind, value, platform):
+            errors.append(f"cosmetic {kind}={value!r} is not registered for {platform}")
 
     return ValidationResult(ok=not errors, errors=tuple(errors))
