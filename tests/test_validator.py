@@ -65,3 +65,25 @@ def test_unregistered_module_is_rejected() -> None:
 
     assert result.ok is False
     assert "module 'UNKNOWN_OPTIC' is not registered for BM-S7:top" in result.errors
+
+
+def test_non_string_module_value_is_rejected() -> None:
+    build = BuildConfig.from_mapping(
+        {"schema_version": 1, "platform": "BM-S7", "modules": {"top": []}}
+    )
+
+    result = validate_build(build)
+
+    assert result.ok is False
+    assert "module value for top must be a string or null" in result.errors
+
+
+def test_non_string_cosmetic_value_is_rejected() -> None:
+    build = BuildConfig.from_mapping(
+        {"schema_version": 1, "platform": "BM-S7", "cosmetics": {"finish": {}}}
+    )
+
+    result = validate_build(build)
+
+    assert result.ok is False
+    assert "cosmetic finish value must be a string or null" in result.errors
