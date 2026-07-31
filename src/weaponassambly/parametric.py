@@ -16,7 +16,7 @@ class ObjectDescriptor:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
-    def from_mapping(cls, data: dict[str, Any]) -> "ObjectDescriptor":
+    def from_mapping(cls, data: dict[str, Any]) -> ObjectDescriptor:
         return cls(
             id=str(data.get("id", "")),
             family=str(data.get("family", "")),
@@ -49,6 +49,8 @@ def validate_descriptor(descriptor: ObjectDescriptor) -> ParametricValidationRes
 
     if descriptor.family == "axial_body":
         errors.extend(_validate_axial_body(descriptor.parameters))
+    elif descriptor.family == "box_body":
+        errors.extend(_validate_box_body(descriptor.parameters))
     else:
         errors.append(f"unsupported family: {descriptor.family}")
 
@@ -104,6 +106,56 @@ def _validate_axial_body(parameters: dict[str, object]) -> list[str]:
     return errors
 
 
+def _validate_box_body(parameters: dict[str, object]) -> list[str]:
+    errors: list[str] = []
+
+    width = parameters.get("width")
+    height = parameters.get("height")
+    depth = parameters.get("depth")
+    wall = parameters.get("wall", 0.0)
+    chamfer = parameters.get("chamfer", 0.0)
+
+    for name, value in (
+        ("width", width),
+        ("height", height),
+        ("depth", depth),
+        ("wall", wall),
+        ("chamfer", chamfer),
+    ):
+        if value is None:
+            errors.append(f"{name} is required")
+        elif not _number(value):
+            errors.append(f"{name} must be a number")
+
+    if errors:
+        return errors
+
+    assert isinstance(width, (int, float))
+    assert isinstance(height, (int, float))
+    assert isinstance(depth, (int, float))
+    assert isinstance(wall, (int, float))
+    assert isinstance(chamfer, (int, float))
+
+    if width <= 0:
+        errors.append("width must be > 0")
+    if height <= 0:
+        errors.append("height must be > 0")
+    if depth <= 0:
+        errors.append("depth must be > 0")
+    if wall < 0:
+        errors.append("wall must be >= 0")
+
+    limit = min(width, height, depth) / 2.0
+    if wall >= limit:
+        errors.append("wall must be smaller than half of the smallest dimension")
+    if chamfer < 0:
+        errors.append("chamfer must be >= 0")
+    if chamfer >= limit:
+        errors.append("chamfer must be smaller than half of the smallest dimension")
+
+    return errors
+
+
 def axial_body_recipe(descriptor: ObjectDescriptor) -> dict[str, Any]:
     result = validate_descriptor(descriptor)
     if not result.ok:
@@ -134,6 +186,44 @@ def axial_body_recipe(descriptor: ObjectDescriptor) -> dict[str, Any]:
             "cap_top": cap_top,
             "cap_bottom": cap_bottom,
             "bevel": bevel,
+        },
+        "connectors": list(descriptor.connectors),
+        "materials": list(descriptor.materials),
+        "modifiers": list(descriptor.modifiers),
+        "metadata": dict(descriptor.metadata),
+    }
+
+
+def box_body_recipe(descriptor: ObjectDescriptor) -> dict[str, Any]:
+    result = validate_descriptor(descriptor)
+    if not result.ok:
+        raise ValueError(f"invalid descriptor: {'; '.join(result.errors)}")
+
+    p = descriptor.parameters
+    width = float(p["width"])
+    height = float(p["height"])
+    depth = float(p["depth"])
+    wall = float(p.get("wall", 0.0))
+    chamfer = float(p.get("chamfer", 0.0))
+    hollow = bool(p.get("hollow", False))
+    cap_top = bool(p.get("cap_top", True))
+    cap_bottom = bool(p.get("cap_bottom", True))
+
+    return {
+        "generator": "box_body",
+        "object_id": descriptor.id,
+        "semantic": descriptor.semantic,
+        "dimensions": {
+            "width": width,
+            "height": height,
+            "depth": depth,
+            "wall": wall,
+        },
+        "mesh": {
+            "chamfer": chamfer,
+            "hollow": hollow,
+            "cap_top": cap_top,
+            "cap_bottom": cap_bottom,
         },
         "connectors": list(descriptor.connectors),
         "materials": list(descriptor.materials),

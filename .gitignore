@@ -38,3 +38,6 @@ venv/
 
 # Logs
 *.log
+
+# Egg-info
+*.egg-info/

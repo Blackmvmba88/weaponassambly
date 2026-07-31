@@ -11,10 +11,32 @@ from .assembly import plan_build
 from .catalog import registered_platforms
 from .io import load_build
 from .manifest import build_manifest
+from .parametric import ObjectDescriptor, validate_descriptor
 from .registry import platform_modules
 from .resolver import resolve_build
 from .scene import load_scene_manifest, validate_scene_manifest
 from .validator import validate_build
+
+
+def cmd_parametric_validate(path: str) -> int:
+    try:
+        data = json.loads(Path(path).read_text(encoding="utf-8"))
+        if not isinstance(data, dict):
+            print("ERROR: descriptor root must be a JSON object", file=sys.stderr)
+            return 2
+        descriptor = ObjectDescriptor.from_mapping(data)
+    except (OSError, ValueError) as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
+
+    result = validate_descriptor(descriptor)
+    if not result.ok:
+        for error in result.errors:
+            print(f"ERROR: {error}", file=sys.stderr)
+        return 1
+
+    print(f"OK: {descriptor.id or 'unnamed'} [{descriptor.family}]")
+    return 0
 
 
 def cmd_validate(path: str) -> int:
@@ -167,6 +189,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     subparsers.add_parser("catalog-validate", help="validate all packaged platform catalogs")
 
+    parametric_validate = subparsers.add_parser(
+        "parametric-validate", help="validate a parametric object descriptor JSON file"
+    )
+    parametric_validate.add_argument("path")
+
     validate = subparsers.add_parser("validate", help="validate a build JSON file")
     validate.add_argument("path")
 
@@ -202,6 +229,8 @@ def main() -> int:
 
     if args.command == "catalog-validate":
         return cmd_catalog_validate()
+    if args.command == "parametric-validate":
+        return cmd_parametric_validate(args.path)
     if args.command == "validate":
         return cmd_validate(args.path)
     if args.command == "inspect":
