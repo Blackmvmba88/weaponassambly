@@ -130,13 +130,19 @@ def load_catalogs() -> dict[str, dict[str, Any]]:
 
 
 def get_catalog(platform: str) -> dict[str, Any] | None:
+    # Retaining the standard get() on cached load_catalogs() to avoid caching mutable dictionaries.
     return load_catalogs().get(platform)
 
 
+# ⚡ OPTIMIZATION: Cache registered platforms list to avoid repeated sorting and tuple generation.
+@lru_cache(maxsize=1)
 def registered_platforms() -> tuple[str, ...]:
     return tuple(sorted(load_catalogs()))
 
 
+# ⚡ OPTIMIZATION: Cache the frozenset of slot modules. Converts lists of modules to a static
+# frozenset once per platform/slot, eliminating repeated list allocations & hashing operations.
+@lru_cache(maxsize=128)
 def slot_modules(platform: str, slot: str) -> frozenset[str]:
     catalog = get_catalog(platform)
     if catalog is None:
@@ -147,6 +153,8 @@ def slot_modules(platform: str, slot: str) -> frozenset[str]:
     return frozenset(spec["modules"])
 
 
+# ⚡ OPTIMIZATION: Cache socket strings to avoid repeated nested dictionary lookups.
+@lru_cache(maxsize=128)
 def socket_for_slot(platform: str, slot: str) -> str | None:
     catalog = get_catalog(platform)
     if catalog is None:
@@ -157,6 +165,9 @@ def socket_for_slot(platform: str, slot: str) -> str | None:
     return str(spec["socket"])
 
 
+# ⚡ OPTIMIZATION: Cache the frozenset of cosmetic values. Converts lists of cosmetic values to
+# a static frozenset once per platform/kind, eliminating repeated allocations and list scans.
+@lru_cache(maxsize=128)
 def cosmetic_values(platform: str, kind: str) -> frozenset[str]:
     catalog = get_catalog(platform)
     if catalog is None:
