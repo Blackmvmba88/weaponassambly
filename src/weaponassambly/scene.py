@@ -51,7 +51,7 @@ def validate_scene_manifest(data: dict[str, Any]) -> SceneValidationResult:
         errors.append("sockets must be an object")
         sockets = {}
 
-    missing = sorted(REQUIRED_SOCKETS - set(sockets))
+    missing = sorted(REQUIRED_SOCKETS.difference(sockets))
     for socket in missing:
         errors.append(f"missing socket: {socket}")
 

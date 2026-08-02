@@ -1,0 +1,3 @@
+## 2025-01-24 - Redundant Object Creation and Catalog Lookups in Build Validation
+**Learning:** In python modular architectures where data validation happens frequently, recreating sets of valid slots, rebuilding cosmetic kind sets from all catalogs, and recreating `frozenset` instances of module lists during validation can become a significant performance bottleneck (over 50% CPU overhead). Caching static catalog structures and extracting constant enum sets to module-level variables saves valuable CPU cycles.
+**Action:** Always identify static lookups and constant collections during validation pathways and cache them using `@lru_cache` or extract them as module-level constants.
