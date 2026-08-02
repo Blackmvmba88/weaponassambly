@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from functools import lru_cache
+from functools import cache, lru_cache
 from importlib.resources import files
 from typing import Any
 
@@ -137,6 +137,9 @@ def registered_platforms() -> tuple[str, ...]:
     return tuple(sorted(load_catalogs()))
 
 
+# Cache these lookups to avoid converting lists to sets, reading from JSON-derived catalogs,
+# and making dict lookups on every single build validation, planning, and resolving step.
+@cache
 def slot_modules(platform: str, slot: str) -> frozenset[str]:
     catalog = get_catalog(platform)
     if catalog is None:
@@ -147,6 +150,7 @@ def slot_modules(platform: str, slot: str) -> frozenset[str]:
     return frozenset(spec["modules"])
 
 
+@cache
 def socket_for_slot(platform: str, slot: str) -> str | None:
     catalog = get_catalog(platform)
     if catalog is None:
@@ -157,6 +161,7 @@ def socket_for_slot(platform: str, slot: str) -> str | None:
     return str(spec["socket"])
 
 
+@cache
 def cosmetic_values(platform: str, kind: str) -> frozenset[str]:
     catalog = get_catalog(platform)
     if catalog is None:
