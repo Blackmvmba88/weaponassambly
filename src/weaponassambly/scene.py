@@ -67,17 +67,34 @@ def validate_scene_manifest(data: dict[str, Any]) -> SceneValidationResult:
             if not isinstance(value, list) or len(value) != 3:
                 errors.append(f"socket {socket_name}.{field} must contain 3 numbers")
                 continue
-            if not all(isinstance(component, int | float) for component in value):
+            # Avoid generator overhead by checking components directly
+            v0, v1, v2 = value
+            if not (
+                isinstance(v0, (int, float))
+                and isinstance(v1, (int, float))
+                and isinstance(v2, (int, float))
+            ):
                 errors.append(f"socket {socket_name}.{field} must contain only numbers")
         scale = transform.get("scale")
         if isinstance(scale, list) and len(scale) == 3:
-            if any(abs(float(component) - 1.0) > 1e-6 for component in scale):
-                errors.append(f"socket {socket_name} scale must be 1,1,1")
+            s0, s1, s2 = scale
+            try:
+                if (
+                    abs(float(s0) - 1.0) > 1e-6
+                    or abs(float(s1) - 1.0) > 1e-6
+                    or abs(float(s2) - 1.0) > 1e-6
+                ):
+                    errors.append(f"socket {socket_name} scale must be 1,1,1")
+            except (TypeError, ValueError):
+                pass
 
     collections = data.get("collections")
-    if not isinstance(collections, list) or not all(
-        isinstance(item, str) for item in collections
-    ):
+    if not isinstance(collections, list):
         errors.append("collections must be a list of strings")
+    else:
+        for item in collections:
+            if not isinstance(item, str):
+                errors.append("collections must be a list of strings")
+                break
 
     return SceneValidationResult(ok=not errors, errors=tuple(errors))

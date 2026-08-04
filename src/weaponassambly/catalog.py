@@ -137,6 +137,7 @@ def registered_platforms() -> tuple[str, ...]:
     return tuple(sorted(load_catalogs()))
 
 
+@lru_cache(maxsize=128)
 def slot_modules(platform: str, slot: str) -> frozenset[str]:
     catalog = get_catalog(platform)
     if catalog is None:
@@ -147,6 +148,7 @@ def slot_modules(platform: str, slot: str) -> frozenset[str]:
     return frozenset(spec["modules"])
 
 
+@lru_cache(maxsize=128)
 def socket_for_slot(platform: str, slot: str) -> str | None:
     catalog = get_catalog(platform)
     if catalog is None:
@@ -157,6 +159,7 @@ def socket_for_slot(platform: str, slot: str) -> str | None:
     return str(spec["socket"])
 
 
+@lru_cache(maxsize=128)
 def cosmetic_values(platform: str, kind: str) -> frozenset[str]:
     catalog = get_catalog(platform)
     if catalog is None:
