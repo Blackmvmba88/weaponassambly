@@ -19,9 +19,7 @@ def load_json(path: str | Path) -> dict[str, Any]:
 def load_build(path: str | Path) -> BuildConfig:
     data = load_json(path)
     missing = [
-        key
-        for key in ("schema_version", "platform", "modules", "cosmetics")
-        if key not in data
+        key for key in ("schema_version", "platform", "modules", "cosmetics") if key not in data
     ]
     if missing:
         raise ValueError(f"missing required keys: {', '.join(missing)}")

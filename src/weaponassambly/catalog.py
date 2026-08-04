@@ -137,6 +137,9 @@ def registered_platforms() -> tuple[str, ...]:
     return tuple(sorted(load_catalogs()))
 
 
+# Cache helper queries to avoid redundant frozenset constructions and dict traversals.
+# Catalog JSON resources are completely static and read-only, making LRU caching 100% safe.
+@lru_cache(maxsize=128)
 def slot_modules(platform: str, slot: str) -> frozenset[str]:
     catalog = get_catalog(platform)
     if catalog is None:
@@ -147,6 +150,7 @@ def slot_modules(platform: str, slot: str) -> frozenset[str]:
     return frozenset(spec["modules"])
 
 
+@lru_cache(maxsize=128)
 def socket_for_slot(platform: str, slot: str) -> str | None:
     catalog = get_catalog(platform)
     if catalog is None:
@@ -157,9 +161,18 @@ def socket_for_slot(platform: str, slot: str) -> str | None:
     return str(spec["socket"])
 
 
+@lru_cache(maxsize=128)
 def cosmetic_values(platform: str, kind: str) -> frozenset[str]:
     catalog = get_catalog(platform)
     if catalog is None:
         return frozenset()
     values = catalog["cosmetics"].get(kind, [])
     return frozenset(values)
+
+
+@lru_cache(maxsize=128)
+def cosmetic_kinds() -> frozenset[str]:
+    kinds: set[str] = set()
+    for catalog in load_catalogs().values():
+        kinds.update(catalog["cosmetics"])
+    return frozenset(kinds)
