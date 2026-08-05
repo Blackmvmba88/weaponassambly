@@ -130,14 +130,19 @@ def load_catalogs() -> dict[str, dict[str, Any]]:
 
 
 def get_catalog(platform: str) -> dict[str, Any] | None:
+    """Retrieve catalog data for a specific platform."""
     return load_catalogs().get(platform)
 
 
+@lru_cache(maxsize=1)
 def registered_platforms() -> tuple[str, ...]:
+    """Retrieve all registered platform names. Cached to avoid tuple/sorting on every call."""
     return tuple(sorted(load_catalogs()))
 
 
+@lru_cache(maxsize=128)
 def slot_modules(platform: str, slot: str) -> frozenset[str]:
+    """Retrieve allowed module IDs. Cached to avoid rebuilding frozenset."""
     catalog = get_catalog(platform)
     if catalog is None:
         return frozenset()
@@ -147,7 +152,9 @@ def slot_modules(platform: str, slot: str) -> frozenset[str]:
     return frozenset(spec["modules"])
 
 
+@lru_cache(maxsize=128)
 def socket_for_slot(platform: str, slot: str) -> str | None:
+    """Retrieve socket name for a given slot. Cached to avoid lookup overhead."""
     catalog = get_catalog(platform)
     if catalog is None:
         return None
@@ -157,7 +164,9 @@ def socket_for_slot(platform: str, slot: str) -> str | None:
     return str(spec["socket"])
 
 
+@lru_cache(maxsize=128)
 def cosmetic_values(platform: str, kind: str) -> frozenset[str]:
+    """Retrieve allowed values for cosmetic. Cached to avoid rebuilding frozenset."""
     catalog = get_catalog(platform)
     if catalog is None:
         return frozenset()

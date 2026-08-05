@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from functools import lru_cache
+
 from .catalog import cosmetic_values, get_catalog, load_catalogs, slot_modules, socket_for_slot
 
 
@@ -8,6 +10,7 @@ def platform_exists(platform: str) -> bool:
 
 
 def platform_modules(platform: str) -> dict[str, set[str]] | None:
+    """Retrieve slot-to-modules dictionary for a platform."""
     catalog = get_catalog(platform)
     if catalog is None:
         return None
@@ -21,7 +24,9 @@ def module_allowed(platform: str, slot: str, module: str) -> bool:
     return module in slot_modules(platform, slot)
 
 
+@lru_cache(maxsize=1)
 def cosmetic_kinds() -> frozenset[str]:
+    """Retrieve all available cosmetic kinds. Cached to prevent repeated construction."""
     kinds: set[str] = set()
     for catalog in load_catalogs().values():
         kinds.update(catalog["cosmetics"])
