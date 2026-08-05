@@ -26,11 +26,7 @@ def test_catalog_has_no_duplicate_module_ids():
     catalog = get_catalog("BM-S7")
     assert catalog is not None
 
-    module_ids = [
-        module
-        for spec in catalog["slots"].values()
-        for module in spec["modules"]
-    ]
+    module_ids = [module for spec in catalog["slots"].values() for module in spec["modules"]]
     assert len(module_ids) == len(set(module_ids))
 
 

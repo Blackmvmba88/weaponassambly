@@ -96,8 +96,6 @@ def test_axial_body_recipe_refuses_invalid_descriptor() -> None:
         axial_body_recipe(descriptor)
 
 
-
-
 def test_box_body_descriptor_validates() -> None:
     descriptor = ObjectDescriptor.from_mapping(
         {
@@ -147,7 +145,7 @@ def test_box_body_rejects_impossible_dimensions() -> None:
                 "width": -0.1,
                 "height": 1.0,
                 "depth": 1.0,
-            }
+            },
         }
     )
     result = validate_descriptor(descriptor)
@@ -166,7 +164,7 @@ def test_box_body_rejects_impossible_wall_and_chamfer() -> None:
                 "depth": 2.0,
                 "wall": 0.5,
                 "chamfer": 0.1,
-            }
+            },
         }
     )
     result = validate_descriptor(descriptor)
@@ -183,7 +181,7 @@ def test_box_body_rejects_impossible_wall_and_chamfer() -> None:
                 "depth": 2.0,
                 "wall": 0.1,
                 "chamfer": 0.5,
-            }
+            },
         }
     )
     result2 = validate_descriptor(descriptor2)
@@ -200,7 +198,7 @@ def test_box_body_recipe_refuses_invalid_descriptor() -> None:
                 "width": 1.0,
                 "height": -0.5,
                 "depth": 1.0,
-            }
+            },
         }
     )
     with pytest.raises(ValueError, match="invalid descriptor"):
@@ -222,10 +220,10 @@ def test_cmd_parametric_validate_cli(tmp_path) -> None:
                     "width": 1.2,
                     "height": 0.8,
                     "depth": 1.0,
-                }
+                },
             }
         ),
-        encoding="utf-8"
+        encoding="utf-8",
     )
 
     invalid_file = tmp_path / "invalid.json"
@@ -238,10 +236,10 @@ def test_cmd_parametric_validate_cli(tmp_path) -> None:
                     "width": -1.2,
                     "height": 0.8,
                     "depth": 1.0,
-                }
+                },
             }
         ),
-        encoding="utf-8"
+        encoding="utf-8",
     )
 
     assert cmd_parametric_validate(str(valid_file)) == 0
