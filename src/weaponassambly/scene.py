@@ -36,9 +36,7 @@ def validate_scene_manifest(data: dict[str, Any]) -> SceneValidationResult:
     errors: list[str] = []
 
     if data.get("scene_schema_version") != SCENE_SCHEMA_VERSION:
-        errors.append(
-            f"unsupported scene_schema_version: {data.get('scene_schema_version')!r}"
-        )
+        errors.append(f"unsupported scene_schema_version: {data.get('scene_schema_version')!r}")
 
     if data.get("platform") != "BM-S7":
         errors.append(f"unsupported platform: {data.get('platform')!r}")
@@ -75,9 +73,7 @@ def validate_scene_manifest(data: dict[str, Any]) -> SceneValidationResult:
                 errors.append(f"socket {socket_name} scale must be 1,1,1")
 
     collections = data.get("collections")
-    if not isinstance(collections, list) or not all(
-        isinstance(item, str) for item in collections
-    ):
+    if not isinstance(collections, list) or not all(isinstance(item, str) for item in collections):
         errors.append("collections must be a list of strings")
 
     return SceneValidationResult(ok=not errors, errors=tuple(errors))

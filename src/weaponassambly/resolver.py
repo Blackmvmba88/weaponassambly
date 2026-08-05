@@ -84,9 +84,7 @@ def resolve_build(build: BuildConfig, scene_manifest: dict[str, Any]) -> Resolve
 
     expected_root = str(catalog["root"])
     if scene_manifest["root"] != expected_root:
-        raise ValueError(
-            f"root mismatch: catalog={expected_root} scene={scene_manifest['root']}"
-        )
+        raise ValueError(f"root mismatch: catalog={expected_root} scene={scene_manifest['root']}")
 
     plan = plan_build(build)
     resolved_modules = tuple(
