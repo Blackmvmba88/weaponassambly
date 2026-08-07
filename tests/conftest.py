@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 
 from weaponassambly.catalog import (
+    cosmetic_kind_values,
     cosmetic_values,
     load_catalogs,
     registered_platforms,
@@ -25,3 +26,4 @@ def _clear_all_caches():
     slot_modules.cache_clear()
     socket_for_slot.cache_clear()
     cosmetic_values.cache_clear()
+    cosmetic_kind_values.cache_clear()

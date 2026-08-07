@@ -1,6 +1,13 @@
 from __future__ import annotations
 
-from .catalog import cosmetic_values, get_catalog, load_catalogs, slot_modules, socket_for_slot
+from .catalog import (
+    cosmetic_kind_values,
+    cosmetic_values,
+    get_catalog,
+    load_catalogs,
+    slot_modules,
+    socket_for_slot,
+)
 
 
 def platform_exists(platform: str) -> bool:
@@ -29,7 +36,7 @@ def cosmetic_allowed(kind: str, value: str, platform: str | None = None) -> bool
     if platform is not None:
         return value in cosmetic_values(platform, kind)
 
-    return any(value in catalog["cosmetics"].get(kind, []) for catalog in load_catalogs().values())
+    return value in cosmetic_kind_values(kind)
 
 
 def canonical_socket(platform: str, slot: str) -> str | None:

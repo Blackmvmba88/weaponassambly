@@ -43,3 +43,19 @@ def test_catalog_validator_rejects_missing_slot():
 
     assert not result.ok
     assert "missing slot in catalog: top" in result.errors
+
+
+def test_cosmetic_allowed_without_platform_and_cosmetic_kind_values():
+    from weaponassambly.catalog import cosmetic_kind_values
+    from weaponassambly.registry import cosmetic_allowed
+
+    # Test cosmetic_kind_values returns correct frozenset
+    finish_values = cosmetic_kind_values("finish")
+    assert "polished_black" in finish_values
+    assert "chrome" in finish_values
+    assert "gunmetal" in finish_values
+    assert "nonexistent" not in finish_values
+
+    # Test cosmetic_allowed when platform is None
+    assert cosmetic_allowed("finish", "polished_black", None) is True
+    assert cosmetic_allowed("finish", "nonexistent", None) is False
