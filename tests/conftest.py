@@ -9,6 +9,7 @@ from weaponassambly.catalog import (
     slot_modules,
     socket_for_slot,
 )
+from weaponassambly.registry import cosmetic_kinds
 
 
 @pytest.fixture(autouse=True)
@@ -25,3 +26,4 @@ def _clear_all_caches():
     slot_modules.cache_clear()
     socket_for_slot.cache_clear()
     cosmetic_values.cache_clear()
+    cosmetic_kinds.cache_clear()
