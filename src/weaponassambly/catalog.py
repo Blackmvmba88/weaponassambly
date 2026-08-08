@@ -167,3 +167,12 @@ def cosmetic_values(platform: str, kind: str) -> frozenset[str]:
         return frozenset()
     values = catalog["cosmetics"].get(kind, [])
     return frozenset(values)
+
+
+@lru_cache(maxsize=256)
+def cosmetic_kind_values(kind: str) -> frozenset[str]:
+    """Get all cosmetic values across all platforms for a given kind, cached globally."""
+    values: set[str] = set()
+    for catalog in load_catalogs().values():
+        values.update(catalog["cosmetics"].get(kind, []))
+    return frozenset(values)
