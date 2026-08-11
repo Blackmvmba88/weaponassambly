@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from functools import lru_cache
+
 from .catalog import cosmetic_values, get_catalog, load_catalogs, slot_modules, socket_for_slot
 
 
@@ -18,6 +20,9 @@ def module_allowed(platform: str, slot: str, module: str) -> bool:
     return module in slot_modules(platform, slot)
 
 
+# Cache the static set of cosmetic kinds to avoid repeating
+# catalog iteration and set building on hot-path validations.
+@lru_cache(maxsize=1)
 def cosmetic_kinds() -> frozenset[str]:
     kinds: set[str] = set()
     for catalog in load_catalogs().values():
