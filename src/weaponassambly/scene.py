@@ -49,7 +49,8 @@ def validate_scene_manifest(data: dict[str, Any]) -> SceneValidationResult:
         errors.append("sockets must be an object")
         sockets = {}
 
-    missing = sorted(REQUIRED_SOCKETS - set(sockets))
+    # Optimized set diff: avoid set conversion of sockets; use REQUIRED_SOCKETS.difference
+    missing = sorted(REQUIRED_SOCKETS.difference(sockets))
     for socket in missing:
         errors.append(f"missing socket: {socket}")
 
@@ -65,15 +66,32 @@ def validate_scene_manifest(data: dict[str, Any]) -> SceneValidationResult:
             if not isinstance(value, list) or len(value) != 3:
                 errors.append(f"socket {socket_name}.{field} must contain 3 numbers")
                 continue
-            if not all(isinstance(component, int | float) for component in value):
+            # Optimized type checks: replaced all() generator with index-based checks
+            val_0, val_1, val_2 = value[0], value[1], value[2]
+            if not (
+                isinstance(val_0, int | float)
+                and isinstance(val_1, int | float)
+                and isinstance(val_2, int | float)
+            ):
                 errors.append(f"socket {socket_name}.{field} must contain only numbers")
         scale = transform.get("scale")
         if isinstance(scale, list) and len(scale) == 3:
-            if any(abs(float(component) - 1.0) > 1e-6 for component in scale):
+            # Optimized scale check: replaced any() generator with direct float threshold checks
+            if (
+                abs(float(scale[0]) - 1.0) > 1e-6
+                or abs(float(scale[1]) - 1.0) > 1e-6
+                or abs(float(scale[2]) - 1.0) > 1e-6
+            ):
                 errors.append(f"socket {socket_name} scale must be 1,1,1")
 
     collections = data.get("collections")
-    if not isinstance(collections, list) or not all(isinstance(item, str) for item in collections):
+    if not isinstance(collections, list):
         errors.append("collections must be a list of strings")
+    else:
+        # Optimized collections check: replaced all() generator with early break loop
+        for item in collections:
+            if not isinstance(item, str):
+                errors.append("collections must be a list of strings")
+                break
 
     return SceneValidationResult(ok=not errors, errors=tuple(errors))
