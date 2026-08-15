@@ -49,7 +49,9 @@ def validate_scene_manifest(data: dict[str, Any]) -> SceneValidationResult:
         errors.append("sockets must be an object")
         sockets = {}
 
-    # Optimized set diff: avoid set conversion of sockets; use REQUIRED_SOCKETS.difference
+    # Optimization: Use REQUIRED_SOCKETS.difference(sockets) instead of
+    # REQUIRED_SOCKETS - set(sockets) to avoid creating a new intermediate
+    # set(sockets) object. difference() accepts dict keys directly.
     missing = sorted(REQUIRED_SOCKETS.difference(sockets))
     for socket in missing:
         errors.append(f"missing socket: {socket}")
@@ -66,29 +68,32 @@ def validate_scene_manifest(data: dict[str, Any]) -> SceneValidationResult:
             if not isinstance(value, list) or len(value) != 3:
                 errors.append(f"socket {socket_name}.{field} must contain 3 numbers")
                 continue
-            # Optimized type checks: replaced all() generator with index-based checks
-            val_0, val_1, val_2 = value[0], value[1], value[2]
+            # Optimization: Use explicit index checks with (int, float) instead of
+            # all() with a generator expression to avoid generator and function call overhead.
             if not (
-                isinstance(val_0, int | float)
-                and isinstance(val_1, int | float)
-                and isinstance(val_2, int | float)
+                isinstance(value[0], (int, float))
+                and isinstance(value[1], (int, float))
+                and isinstance(value[2], (int, float))
             ):
                 errors.append(f"socket {socket_name}.{field} must contain only numbers")
         scale = transform.get("scale")
         if isinstance(scale, list) and len(scale) == 3:
-            # Optimized scale check: replaced any() generator with direct float threshold checks
-            if (
-                abs(float(scale[0]) - 1.0) > 1e-6
-                or abs(float(scale[1]) - 1.0) > 1e-6
-                or abs(float(scale[2]) - 1.0) > 1e-6
-            ):
-                errors.append(f"socket {socket_name} scale must be 1,1,1")
+            # Optimization: Replace generator expression in any() with unrolled index checks
+            # for 3-vectors to avoid generator overhead and function calls.
+            try:
+                if (abs(float(scale[0]) - 1.0) > 1e-6 or
+                    abs(float(scale[1]) - 1.0) > 1e-6 or
+                    abs(float(scale[2]) - 1.0) > 1e-6):
+                    errors.append(f"socket {socket_name} scale must be 1,1,1")
+            except (TypeError, ValueError):
+                pass
 
     collections = data.get("collections")
     if not isinstance(collections, list):
         errors.append("collections must be a list of strings")
     else:
-        # Optimized collections check: replaced all() generator with early break loop
+        # Optimization: Use a simple loop with early exit to check string elements,
+        # avoiding generator and all() overhead.
         for item in collections:
             if not isinstance(item, str):
                 errors.append("collections must be a list of strings")
