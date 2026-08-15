@@ -14,10 +14,6 @@ class ValidationResult:
     errors: tuple[str, ...]
 
 
-# Cache Slot enum values to avoid recreating the set on every function call
-VALID_SLOTS = frozenset(slot.value for slot in Slot)
-
-
 def validate_build(build: BuildConfig) -> ValidationResult:
     errors: list[str] = []
 
