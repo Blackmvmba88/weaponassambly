@@ -6,6 +6,6 @@ This is Bolt's journal for tracking critical learnings about performance optimiz
 **Learning:** The weapon catalog data in `catalog.py` is read from static JSON resources, making queries about slots, cosmetics, and platform metadata safe to cache globally using `@lru_cache`, provided they return immutable structures (e.g. `frozenset`, `tuple`, `str`) to avoid cache mutation vulnerability.
 **Action:** Use `@lru_cache` on catalog functions returning immutable structures, and clear caches in tests to avoid state leakage.
 
-## 2026-08-07 - LRU Caching for cosmetic_kinds()
-**Learning:** Functions that aggregate global catalog info into immutable collections (like `frozenset[str]` from `cosmetic_kinds()`) should be cached using `@lru_cache` to prevent rebuilding the set/frozenset on every single invocation in hot paths such as `validate_build`.
-**Action:** Apply `@lru_cache(maxsize=1)` to `cosmetic_kinds()` in `registry.py` and clear its cache in the test autouse fixture `clear_caches` within `tests/conftest.py`.
+## 2024-06-26 - Static Set Hoisting and IntEnum Comparisons
+**Learning:** In hot paths such as build validation and assembly plan sorting, iterating/re-creating sets from Enum values (`{slot.value for slot in Slot}`) and explicitly casting `IntEnum` members (`int(item[0])`) introduces measurable object creation and function call overhead.
+**Action:** Hoist static Enum sets to module-level `frozenset` constants and leverage native integer comparison on `IntEnum` members.
