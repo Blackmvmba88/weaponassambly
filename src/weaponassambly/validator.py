@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from .models import BuildConfig, Slot
 from .registry import cosmetic_allowed, cosmetic_kinds, module_allowed, platform_exists
 
+VALID_SLOTS = frozenset(slot.value for slot in Slot)
+
 
 @dataclass(frozen=True, slots=True)
 class ValidationResult:
