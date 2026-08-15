@@ -2,7 +2,14 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from .catalog import cosmetic_values, get_catalog, load_catalogs, slot_modules, socket_for_slot
+from .catalog import (
+    cosmetic_kind_values,
+    cosmetic_values,
+    get_catalog,
+    load_catalogs,
+    slot_modules,
+    socket_for_slot,
+)
 
 
 def platform_exists(platform: str) -> bool:
