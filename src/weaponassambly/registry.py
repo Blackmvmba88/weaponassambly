@@ -20,7 +20,8 @@ def module_allowed(platform: str, slot: str, module: str) -> bool:
     return module in slot_modules(platform, slot)
 
 
-@lru_cache(maxsize=128)
+# Cache cosmetic kinds globally since catalog resources are static.
+@lru_cache(maxsize=1)
 def cosmetic_kinds() -> frozenset[str]:
     # Cached to avoid loading/scanning catalogs repeatedly.
     # Yields an 88% reduction in lookup time.
