@@ -10,6 +10,8 @@ from .models import Slot
 
 CATALOG_VERSION = 1
 
+EXPECTED_SLOTS = frozenset(slot.value for slot in Slot)
+
 
 @dataclass(frozen=True, slots=True)
 class CatalogValidationResult:
@@ -40,9 +42,8 @@ def validate_catalog(data: dict[str, Any]) -> CatalogValidationResult:
         errors.append("slots must be an object")
         slots = {}
 
-    expected_slots = {slot.value for slot in Slot}
-    unknown_slots = sorted(set(slots) - expected_slots)
-    missing_slots = sorted(expected_slots - set(slots))
+    unknown_slots = sorted(set(slots) - EXPECTED_SLOTS)
+    missing_slots = sorted(EXPECTED_SLOTS - set(slots))
     for slot in unknown_slots:
         errors.append(f"unknown slot in catalog: {slot}")
     for slot in missing_slots:
@@ -50,7 +51,7 @@ def validate_catalog(data: dict[str, Any]) -> CatalogValidationResult:
 
     module_ids: set[str] = set()
     for slot, spec in slots.items():
-        if slot not in expected_slots:
+        if slot not in EXPECTED_SLOTS:
             continue
         if not isinstance(spec, dict):
             errors.append(f"slot {slot} must be an object")
@@ -166,4 +167,12 @@ def cosmetic_values(platform: str, kind: str) -> frozenset[str]:
     if catalog is None:
         return frozenset()
     values = catalog["cosmetics"].get(kind, [])
+    return frozenset(values)
+
+
+@lru_cache(maxsize=256)
+def cosmetic_kind_values(kind: str) -> frozenset[str]:
+    values: set[str] = set()
+    for catalog in load_catalogs().values():
+        values.update(catalog["cosmetics"].get(kind, []))
     return frozenset(values)
