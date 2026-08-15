@@ -30,7 +30,7 @@ def validate_build(build: BuildConfig) -> ValidationResult:
 
     valid_slots = VALID_SLOTS
     for slot, module in build.modules.items():
-        if slot not in valid_slots:
+        if slot not in VALID_SLOTS:
             errors.append(f"unknown module slot: {slot}")
             continue
         if module is None:
