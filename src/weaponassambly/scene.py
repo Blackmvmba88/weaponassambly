@@ -49,6 +49,8 @@ def validate_scene_manifest(data: dict[str, Any]) -> SceneValidationResult:
         errors.append("sockets must be an object")
         sockets = {}
 
+    # Optimized set difference: sorted list of REQUIRED_SOCKETS difference with sockets.
+    # set.difference() is cleaner and faster than converting sockets to a set.
     missing = sorted(REQUIRED_SOCKETS.difference(sockets))
     for socket in missing:
         errors.append(f"missing socket: {socket}")
@@ -65,21 +67,40 @@ def validate_scene_manifest(data: dict[str, Any]) -> SceneValidationResult:
             if not isinstance(value, list) or len(value) != 3:
                 errors.append(f"socket {socket_name}.{field} must contain 3 numbers")
                 continue
-            if not (
-                isinstance(value[0], (int, float))
-                and isinstance(value[1], (int, float))
-                and isinstance(value[2], (int, float))
-            ):
+
+            # Check components using loop to maintain readability while avoiding generator overhead
+            has_non_number = False
+            for component in value:
+                if not isinstance(component, (int, float)) or isinstance(component, bool):
+                    has_non_number = True
+                    break
+            if has_non_number:
                 errors.append(f"socket {socket_name}.{field} must contain only numbers")
+
         scale = transform.get("scale")
         if isinstance(scale, list) and len(scale) == 3:
-            if (abs(float(scale[0]) - 1.0) > 1e-6 or
-                abs(float(scale[1]) - 1.0) > 1e-6 or
-                abs(float(scale[2]) - 1.0) > 1e-6):
+            # Check scale values using a clean, readable loop that handles all types safely.
+            has_scale_error = False
+            for component in scale:
+                try:
+                    if abs(float(component) - 1.0) > 1e-6:
+                        has_scale_error = True
+                        break
+                except (TypeError, ValueError):
+                    # In case of non-floatable types, treat as validation error
+                    has_scale_error = True
+                    break
+            if has_scale_error:
                 errors.append(f"socket {socket_name} scale must be 1,1,1")
 
     collections = data.get("collections")
-    if not isinstance(collections, list) or not all(isinstance(item, str) for item in collections):
+    if not isinstance(collections, list):
         errors.append("collections must be a list of strings")
+    else:
+        # Avoid `all(isinstance(item, str) ...)` generator overhead, using clean loop
+        for item in collections:
+            if not isinstance(item, str):
+                errors.append("collections must be a list of strings")
+                break
 
     return SceneValidationResult(ok=not errors, errors=tuple(errors))

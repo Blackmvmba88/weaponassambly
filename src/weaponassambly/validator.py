@@ -14,6 +14,9 @@ class ValidationResult:
     errors: tuple[str, ...]
 
 
+VALID_SLOTS = frozenset(slot.value for slot in Slot)
+
+
 def validate_build(build: BuildConfig) -> ValidationResult:
     errors: list[str] = []
 
