@@ -54,7 +54,6 @@ def plan_build(build: BuildConfig) -> AssemblyPlan:
             continue
         pending.append((SLOT_TO_STAGE[slot], slot, module))
 
-    # AssemblyStage is an IntEnum and compares directly as integer without int() casting overhead
     pending.sort(key=lambda item: (item[0], item[1], item[2]))
 
     steps: list[AssemblyStep] = []
