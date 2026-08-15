@@ -5,6 +5,9 @@ from dataclasses import dataclass
 from .models import BuildConfig, Slot
 from .registry import cosmetic_allowed, cosmetic_kinds, module_allowed, platform_exists
 
+# Hoist static slot values to module level frozenset to avoid re-creation on every validation call
+VALID_SLOTS = frozenset(slot.value for slot in Slot)
+
 
 @dataclass(frozen=True, slots=True)
 class ValidationResult:
@@ -25,7 +28,7 @@ def validate_build(build: BuildConfig) -> ValidationResult:
     elif not platform_ok:
         errors.append(f"unknown platform: {platform}")
 
-    valid_slots = {slot.value for slot in Slot}
+    valid_slots = VALID_SLOTS
     for slot, module in build.modules.items():
         if slot not in valid_slots:
             errors.append(f"unknown module slot: {slot}")
