@@ -23,17 +23,27 @@ def module_allowed(platform: str, slot: str, module: str) -> bool:
 
 @lru_cache(maxsize=1)
 def cosmetic_kinds() -> frozenset[str]:
+    """Retrieve and cache the set of all unique cosmetic kinds across all loaded catalogs.
+
+    Since catalog data is static and loaded once, we cache this immutable frozenset globally.
+    """
     kinds: set[str] = set()
     for catalog in load_catalogs().values():
         kinds.update(catalog["cosmetics"])
     return frozenset(kinds)
 
 
+@lru_cache(maxsize=512)
 def cosmetic_allowed(kind: str, value: str, platform: str | None = None) -> bool:
+    """Check if a cosmetic value is allowed for a given kind and platform.
+
+    Uses an LRU cache with an immutable return type (bool) to avoid redundant
+    dictionary lookups and catalog traversals for static asset definitions.
+    """
     if platform is not None:
         return value in cosmetic_values(platform, kind)
 
-    return any(value in catalog["cosmetics"].get(kind, []) for catalog in load_catalogs().values())
+    return value in cosmetic_kind_values(kind)
 
 
 def canonical_socket(platform: str, slot: str) -> str | None:

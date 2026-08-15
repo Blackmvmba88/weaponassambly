@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from .models import BuildConfig, Slot
 from .registry import cosmetic_allowed, cosmetic_kinds, module_allowed, platform_exists
 
+VALID_SLOTS = frozenset(slot.value for slot in Slot)
+
 
 @dataclass(frozen=True, slots=True)
 class ValidationResult:
@@ -12,7 +14,7 @@ class ValidationResult:
     errors: tuple[str, ...]
 
 
-_VALID_SLOTS = frozenset(slot.value for slot in Slot)
+VALID_SLOTS = frozenset(slot.value for slot in Slot)
 
 
 def validate_build(build: BuildConfig) -> ValidationResult:
@@ -29,7 +31,7 @@ def validate_build(build: BuildConfig) -> ValidationResult:
         errors.append(f"unknown platform: {platform}")
 
     for slot, module in build.modules.items():
-        if slot not in _VALID_SLOTS:
+        if slot not in VALID_SLOTS:
             errors.append(f"unknown module slot: {slot}")
             continue
         if module is None:
