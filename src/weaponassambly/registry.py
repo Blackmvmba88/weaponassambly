@@ -20,8 +20,6 @@ def module_allowed(platform: str, slot: str, module: str) -> bool:
     return module in slot_modules(platform, slot)
 
 
-# Cache the static set of cosmetic kinds to avoid repeating
-# catalog iteration and set building on hot-path validations.
 @lru_cache(maxsize=1)
 def cosmetic_kinds() -> frozenset[str]:
     kinds: set[str] = set()
@@ -30,11 +28,12 @@ def cosmetic_kinds() -> frozenset[str]:
     return frozenset(kinds)
 
 
+@lru_cache(maxsize=512)
 def cosmetic_allowed(kind: str, value: str, platform: str | None = None) -> bool:
     if platform is not None:
         return value in cosmetic_values(platform, kind)
 
-    return any(value in catalog["cosmetics"].get(kind, []) for catalog in load_catalogs().values())
+    return value in cosmetic_kind_values(kind)
 
 
 def canonical_socket(platform: str, slot: str) -> str | None:

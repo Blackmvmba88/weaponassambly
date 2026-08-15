@@ -54,7 +54,7 @@ def plan_build(build: BuildConfig) -> AssemblyPlan:
             continue
         pending.append((SLOT_TO_STAGE[slot], slot, module))
 
-    pending.sort(key=lambda item: (int(item[0]), item[1], item[2]))
+    pending.sort(key=lambda item: (item[0], item[1], item[2]))
 
     steps: list[AssemblyStep] = []
     for index, (stage, slot, module) in enumerate(pending, start=1):
