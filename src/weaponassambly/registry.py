@@ -22,6 +22,10 @@ def module_allowed(platform: str, slot: str, module: str) -> bool:
 
 @lru_cache(maxsize=1)
 def cosmetic_kinds() -> frozenset[str]:
+    """Retrieve and cache the set of all unique cosmetic kinds across all loaded catalogs.
+
+    Since catalog data is static and loaded once, we cache this immutable frozenset globally.
+    """
     kinds: set[str] = set()
     for catalog in load_catalogs().values():
         kinds.update(catalog["cosmetics"])
