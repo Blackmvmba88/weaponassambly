@@ -34,6 +34,11 @@ def cosmetic_kinds() -> frozenset[str]:
 
 @lru_cache(maxsize=512)
 def cosmetic_allowed(kind: str, value: str, platform: str | None = None) -> bool:
+    """Check if a cosmetic value is allowed for a given kind and platform.
+
+    Uses an LRU cache with an immutable return type (bool) to avoid redundant
+    dictionary lookups and catalog traversals for static asset definitions.
+    """
     if platform is not None:
         return value in cosmetic_values(platform, kind)
 
