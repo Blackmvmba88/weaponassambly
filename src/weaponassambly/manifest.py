@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import asdict
 from typing import Any
 
 from .assembly import plan_build
@@ -41,8 +40,11 @@ def plan_as_dict(build: BuildConfig) -> dict[str, Any]:
         "display_name": plan.display_name,
         "steps": [
             {
-                **asdict(step),
+                "order": step.order,
                 "stage": step.stage.name.lower(),
+                "slot": step.slot,
+                "module": step.module,
+                "socket": step.socket,
             }
             for step in plan.steps
         ],
