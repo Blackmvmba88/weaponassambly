@@ -3,7 +3,6 @@ from __future__ import annotations
 import pytest
 
 from weaponassambly.catalog import (
-    cosmetic_kind_values,
     cosmetic_values,
     load_catalogs,
     registered_platforms,
