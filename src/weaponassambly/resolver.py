@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from typing import Any
 
 from .assembly import plan_build
@@ -111,12 +111,27 @@ def resolve_build(build: BuildConfig, scene_manifest: dict[str, Any]) -> Resolve
 
 
 def resolved_build_as_dict(resolved: ResolvedBuild) -> dict[str, Any]:
+    # Construct dict explicitly instead of asdict() to avoid reflection overhead
     return {
         "resolver_version": resolved.resolver_version,
         "platform": resolved.platform,
         "display_name": resolved.display_name,
         "root": resolved.root,
-        "modules": [asdict(module) for module in resolved.modules],
+        "modules": [
+            {
+                "order": module.order,
+                "stage": module.stage,
+                "slot": module.slot,
+                "module": module.module,
+                "socket": module.socket,
+                "transform": {
+                    "location": module.transform.location,
+                    "rotation_euler": module.transform.rotation_euler,
+                    "scale": module.transform.scale,
+                },
+            }
+            for module in resolved.modules
+        ],
         "cosmetics": resolved.cosmetics,
         "assembly": resolved.assembly,
     }
