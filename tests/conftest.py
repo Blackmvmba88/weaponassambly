@@ -26,5 +26,6 @@ def _clear_all_caches():
     slot_modules.cache_clear()
     socket_for_slot.cache_clear()
     cosmetic_values.cache_clear()
+    cosmetic_kind_values.cache_clear()
     cosmetic_kinds.cache_clear()
     cosmetic_allowed.cache_clear()
