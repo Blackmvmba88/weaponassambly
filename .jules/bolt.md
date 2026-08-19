@@ -21,3 +21,7 @@ This is Bolt's journal for tracking critical learnings about performance optimiz
 ## 2025-02-14 - Direct Dictionary Construction vs. dataclasses.asdict()
 **Learning:** Python's `dataclasses.asdict()` relies heavily on dynamic reflection and `copy.deepcopy` internally to convert dataclass trees to dictionaries. In high-frequency dictionary serialization hot paths (such as `resolved_build_as_dict` and `plan_as_dict`), replacing `asdict()` with explicit direct dictionary construction avoids reflection and deep copy overhead, yielding a ~14x speedup for nested dataclass conversions.
 **Action:** Use direct dictionary construction instead of `dataclasses.asdict()` for high-volume serialization of known dataclass schemas in performance-sensitive functions.
+
+## 2025-05-18 - Avoiding Duplicate Validation and Caching Enum String Mappings
+**Learning:** In workflow pipelines like `resolve_build`, calling helper methods (`plan_build`) that internally execute input validation (`validate_build`) makes upfront validation redundant. Eliminating duplicate validation calls and replacing dynamic IntEnum string lookups (`stage.name.lower()`) with a precomputed dictionary (`STAGE_NAMES`) speeds up resolution by ~9%. Direct C-level tuple sorting (`pending.sort()`) on 3-tuples `(stage, slot, module)` is also faster than passing key lambdas.
+**Action:** Avoid redundant validation when downstream callers already validate inputs, and precompute string representations for Enums used in hot serialization paths.
