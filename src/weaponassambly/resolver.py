@@ -3,11 +3,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from .assembly import plan_build
+from .assembly import STAGE_NAMES, plan_build
 from .catalog import get_catalog
 from .models import BuildConfig
 from .scene import validate_scene_manifest
-from .validator import validate_build
 
 RESOLVER_VERSION = 1
 
@@ -65,9 +64,8 @@ def resolve_build(build: BuildConfig, scene_manifest: dict[str, Any]) -> Resolve
     The result contains concrete socket transforms for each requested module while
     remaining independent of any specific game engine.
     """
-    build_result = validate_build(build)
-    if not build_result.ok:
-        raise ValueError(f"invalid build: {'; '.join(build_result.errors)}")
+    # plan_build executes validate_build internally; calling it upfront avoids double validation
+    plan = plan_build(build)
 
     scene_result = validate_scene_manifest(scene_manifest)
     if not scene_result.ok:
@@ -86,11 +84,10 @@ def resolve_build(build: BuildConfig, scene_manifest: dict[str, Any]) -> Resolve
     if scene_manifest["root"] != expected_root:
         raise ValueError(f"root mismatch: catalog={expected_root} scene={scene_manifest['root']}")
 
-    plan = plan_build(build)
     resolved_modules = tuple(
         ResolvedModule(
             order=step.order,
-            stage=step.stage.name.lower(),
+            stage=STAGE_NAMES[step.stage],
             slot=step.slot,
             module=step.module,
             socket=step.socket,
