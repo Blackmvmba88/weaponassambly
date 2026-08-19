@@ -21,3 +21,7 @@ This is Bolt's journal for tracking critical learnings about performance optimiz
 ## 2025-02-14 - Direct Dictionary Construction vs. dataclasses.asdict()
 **Learning:** Python's `dataclasses.asdict()` relies heavily on dynamic reflection and `copy.deepcopy` internally to convert dataclass trees to dictionaries. In high-frequency dictionary serialization hot paths (such as `resolved_build_as_dict` and `plan_as_dict`), replacing `asdict()` with explicit direct dictionary construction avoids reflection and deep copy overhead, yielding a ~14x speedup for nested dataclass conversions.
 **Action:** Use direct dictionary construction instead of `dataclasses.asdict()` for high-volume serialization of known dataclass schemas in performance-sensitive functions.
+
+## 2025-02-14 - Direct Tuple Sorting vs. Lambda Key Functions in Assembly Paths
+**Learning:** In assembly planning (`plan_build`), sorting pending module tuples using a lambda key `key=lambda item: (item[0], item[1], item[2])` introduces Python function execution overhead per comparison. Python tuples inherently support C-level lexicographical sorting, so replacing the lambda key with direct `pending.sort()` eliminates function call overhead (~4.5x faster sort).
+**Action:** Rely on native tuple comparison with direct `.sort()` when sorting elements lexicographically by their natural tuple order.
