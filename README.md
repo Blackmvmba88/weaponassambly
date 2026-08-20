@@ -39,7 +39,7 @@ graph LR
     G --> H[Adapters / Game Engine]
 ```
 
-La geometría no define la lógica de gameplay. La configuración vive en datos y la escena aporta transforms de sockets.
+La geometría no define la lógica de gameplay. La configuración vive en datos y la escena aporta transforms de sockets. Consulta [`docs/architecture.md`](docs/architecture.md) para los contratos, límites entre capas y estrategia de validación.
 
 ## Estado actual
 
@@ -94,8 +94,8 @@ Explorar una plataforma y validar una build:
 
 ```bash
 bmwa inspect BM-S7
-bmwa validate configs/bm_s7_example.json
-bmwa plan configs/bm_s7_example.json
+bmwa validate configs/bm-s7.example.json
+bmwa plan configs/bm-s7.example.json
 ```
 
 Consultar todos los comandos disponibles:
@@ -126,10 +126,10 @@ Ejemplo de resolución:
 
 ```bash
 bmwa resolve \
-  configs/bm_s7_example.json \
-  examples/bm_s7_scene_manifest.json \
+  configs/bm-s7.example.json \
+  examples/bm-s7.scene.json \
   --adapter generic-json \
-  --output exports/bm_s7_resolved.json
+  --output exports/bm-s7.resolved.json
 ```
 
 ## Plataforma inicial — BM-S7
