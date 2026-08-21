@@ -54,7 +54,10 @@ def plan_build(build: BuildConfig) -> AssemblyPlan:
             continue
         pending.append((SLOT_TO_STAGE[slot], slot, module))
 
-    pending.sort(key=lambda item: (item[0], item[1], item[2]))
+    # Use direct tuple comparison instead of a key function (lambda item: ...).
+    # Python's built-in tuple comparison natively compares elements positionally in C,
+    # avoiding Python bytecode function call dispatch overhead per comparison.
+    pending.sort()
 
     steps: list[AssemblyStep] = []
     for index, (stage, slot, module) in enumerate(pending, start=1):
