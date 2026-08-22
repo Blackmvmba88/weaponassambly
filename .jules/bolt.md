@@ -21,3 +21,7 @@ This is Bolt's journal for tracking critical learnings about performance optimiz
 ## 2025-02-14 - Direct Dictionary Construction vs. dataclasses.asdict()
 **Learning:** Python's `dataclasses.asdict()` relies heavily on dynamic reflection and `copy.deepcopy` internally to convert dataclass trees to dictionaries. In high-frequency dictionary serialization hot paths (such as `resolved_build_as_dict` and `plan_as_dict`), replacing `asdict()` with explicit direct dictionary construction avoids reflection and deep copy overhead, yielding a ~14x speedup for nested dataclass conversions.
 **Action:** Use direct dictionary construction instead of `dataclasses.asdict()` for high-volume serialization of known dataclass schemas in performance-sensitive functions.
+
+## 2025-02-22 - Precomputing Enum Names and C-Level Tuple Sorting
+**Learning:** Calling `step.stage.name.lower()` in hot serialization and manifest loops causes repeated string allocations and enum property lookup overhead (~3.3x slower than dict lookup). Precomputing `STAGE_NAMES` mapping avoids string generation. Furthermore, sorting tuples `(stage, slot, module)` with `key=lambda item: (item[0], item[1], item[2])` creates unnecessary lambda calls and tuple allocations per comparison (~2.3x slower); calling `pending.sort()` directly relies on C-level tuple comparison.
+**Action:** Precompute static Enum string mappings with module-level dictionaries and rely on direct C-level tuple sorting (`list.sort()`) instead of lambda key functions when elements are already pre-structured as tuples.
