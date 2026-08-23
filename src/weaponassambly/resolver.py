@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from .assembly import plan_build
+from .assembly import STAGE_NAMES, plan_build
 from .catalog import get_catalog
 from .models import BuildConfig
 from .scene import validate_scene_manifest
@@ -90,7 +90,7 @@ def resolve_build(build: BuildConfig, scene_manifest: dict[str, Any]) -> Resolve
     resolved_modules = tuple(
         ResolvedModule(
             order=step.order,
-            stage=step.stage.name.lower(),
+            stage=STAGE_NAMES[step.stage],
             slot=step.slot,
             module=step.module,
             socket=step.socket,
