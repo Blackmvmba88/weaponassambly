@@ -54,7 +54,9 @@ def plan_build(build: BuildConfig) -> AssemblyPlan:
             continue
         pending.append((SLOT_TO_STAGE[slot], slot, module))
 
-    pending.sort(key=lambda item: (item[0], item[1], item[2]))
+    # Native tuple sorting compares (stage, slot, module) directly in C
+    # avoiding lambda overhead for every comparison.
+    pending.sort()
 
     steps: list[AssemblyStep] = []
     for index, (stage, slot, module) in enumerate(pending, start=1):
