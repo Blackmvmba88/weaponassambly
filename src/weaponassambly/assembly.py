@@ -17,6 +17,13 @@ class AssemblyStage(IntEnum):
     COSMETICS = 50
 
 
+# Precomputed string representation lookup map for stages to avoid Enum.name
+# property reflection and lowercasing overhead in hot serialization/assembly paths.
+STAGE_NAMES: dict[AssemblyStage, str] = {
+    stage: stage.name.lower() for stage in AssemblyStage
+}
+
+
 SLOT_TO_STAGE: dict[str, AssemblyStage] = {
     "front": AssemblyStage.FRONT,
     "bottom": AssemblyStage.BOTTOM,
@@ -54,7 +61,9 @@ def plan_build(build: BuildConfig) -> AssemblyPlan:
             continue
         pending.append((SLOT_TO_STAGE[slot], slot, module))
 
-    pending.sort(key=lambda item: (item[0], item[1], item[2]))
+    # C-level tuple comparison (stage, slot, module) avoids lambda call overhead
+    # and intermediate tuple allocations per comparison during assembly planning.
+    pending.sort()
 
     steps: list[AssemblyStep] = []
     for index, (stage, slot, module) in enumerate(pending, start=1):
