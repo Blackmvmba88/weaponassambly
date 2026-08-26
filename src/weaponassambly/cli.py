@@ -7,7 +7,7 @@ from pathlib import Path
 
 from . import __version__
 from .adapters.registry import adapter_names, get_adapter
-from .assembly import plan_build
+from .assembly import STAGE_NAMES, plan_build
 from .catalog import registered_platforms
 from .io import load_build
 from .manifest import build_manifest
@@ -111,7 +111,7 @@ def cmd_plan(path: str) -> int:
     print(f"{plan.display_name} [{plan.platform}]")
     for step in plan.steps:
         print(
-            f"{step.order:02d}  {step.stage.name.lower():<8}  "
+            f"{step.order:02d}  {STAGE_NAMES[step.stage]:<8}  "
             f"{step.slot:<7}  {step.module:<20} -> {step.socket}"
         )
     return 0
