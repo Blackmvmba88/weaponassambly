@@ -17,6 +17,11 @@ class AssemblyStage(IntEnum):
     COSMETICS = 50
 
 
+# Precompute lowercase stage string names to avoid enum reflection (.name)
+# and lower() string allocations in hot paths.
+STAGE_NAMES: dict[AssemblyStage, str] = {stage: stage.name.lower() for stage in AssemblyStage}
+
+
 SLOT_TO_STAGE: dict[str, AssemblyStage] = {
     "front": AssemblyStage.FRONT,
     "bottom": AssemblyStage.BOTTOM,
@@ -54,8 +59,8 @@ def plan_build(build: BuildConfig) -> AssemblyPlan:
             continue
         pending.append((SLOT_TO_STAGE[slot], slot, module))
 
-    # Using native C-level tuple comparison (pending.sort()) instead of a lambda
-    # key function eliminates lambda call overhead on hot planning paths (~5-8% speedup).
+    # Direct tuple sort relies on native C-level comparison of (stage, slot, module)
+    # elements without lambda overhead.
     pending.sort()
 
     steps: list[AssemblyStep] = []
