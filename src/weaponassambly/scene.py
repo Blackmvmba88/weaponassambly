@@ -16,6 +16,7 @@ REQUIRED_SOCKETS = frozenset(
         "SOCKET_GRIP",
     }
 )
+TRANSFORM_FIELDS = ("location", "rotation_euler", "scale")
 
 
 @dataclass(frozen=True, slots=True)
@@ -62,36 +63,40 @@ def validate_scene_manifest(data: dict[str, Any]) -> SceneValidationResult:
         if not isinstance(transform, dict):
             errors.append(f"socket {socket_name} transform must be an object")
             continue
-        for field in ("location", "rotation_euler", "scale"):
+
+        for field in TRANSFORM_FIELDS:
             value = transform.get(field)
             if not isinstance(value, list) or len(value) != 3:
                 errors.append(f"socket {socket_name}.{field} must contain 3 numbers")
                 continue
 
-            # Check components using loop to maintain readability while avoiding generator overhead
-            has_non_number = False
-            for component in value:
-                if not isinstance(component, (int, float)) or isinstance(component, bool):
-                    has_non_number = True
-                    break
+            # Fixed-size vectors are hot-path data. Unroll the three checks while
+            # preserving the original isinstance semantics (including bool rejection).
+            v0, v1, v2 = value[0], value[1], value[2]
+            has_non_number = (
+                not isinstance(v0, (int, float))
+                or isinstance(v0, bool)
+                or not isinstance(v1, (int, float))
+                or isinstance(v1, bool)
+                or not isinstance(v2, (int, float))
+                or isinstance(v2, bool)
+            )
             if has_non_number:
                 errors.append(f"socket {socket_name}.{field} must contain only numbers")
 
-        scale = transform.get("scale")
-        if isinstance(scale, list) and len(scale) == 3:
-            # Check scale values using a clean, readable loop that handles all types safely.
-            has_scale_error = False
-            for component in scale:
+            # Preserve existing validation semantics while avoiding a second scale
+            # dictionary lookup and a second Python loop.
+            if field == "scale":
                 try:
-                    if abs(float(component) - 1.0) > 1e-6:
-                        has_scale_error = True
-                        break
+                    has_scale_error = (
+                        abs(float(v0) - 1.0) > 1e-6
+                        or abs(float(v1) - 1.0) > 1e-6
+                        or abs(float(v2) - 1.0) > 1e-6
+                    )
                 except (TypeError, ValueError):
-                    # In case of non-floatable types, treat as validation error
                     has_scale_error = True
-                    break
-            if has_scale_error:
-                errors.append(f"socket {socket_name} scale must be 1,1,1")
+                if has_scale_error:
+                    errors.append(f"socket {socket_name} scale must be 1,1,1")
 
     collections = data.get("collections")
     if not isinstance(collections, list):
