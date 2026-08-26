@@ -7,7 +7,6 @@ from .assembly import STAGE_NAMES, plan_build
 from .catalog import get_catalog
 from .models import BuildConfig
 from .scene import validate_scene_manifest
-from .validator import validate_build
 
 RESOLVER_VERSION = 1
 
@@ -65,10 +64,8 @@ def resolve_build(build: BuildConfig, scene_manifest: dict[str, Any]) -> Resolve
     The result contains concrete socket transforms for each requested module while
     remaining independent of any specific game engine.
     """
-    build_result = validate_build(build)
-    if not build_result.ok:
-        raise ValueError(f"invalid build: {'; '.join(build_result.errors)}")
-
+    # Note: plan_build(build) validates build internally via validate_build.
+    # Omitting redundant top-level validate_build avoids double-validation overhead.
     scene_result = validate_scene_manifest(scene_manifest)
     if not scene_result.ok:
         raise ValueError(f"invalid scene: {'; '.join(scene_result.errors)}")
