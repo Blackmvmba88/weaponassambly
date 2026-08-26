@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from .assembly import plan_build
+from .assembly import STAGE_NAMES, plan_build
 from .models import BuildConfig
 
 MANIFEST_VERSION = 1
@@ -21,7 +21,7 @@ def build_manifest(build: BuildConfig) -> dict[str, Any]:
         "modules": [
             {
                 "order": step.order,
-                "stage": step.stage.name.lower(),
+                "stage": STAGE_NAMES[step.stage],
                 "slot": step.slot,
                 "module": step.module,
                 "socket": step.socket,
@@ -43,7 +43,7 @@ def plan_as_dict(build: BuildConfig) -> dict[str, Any]:
         "steps": [
             {
                 "order": step.order,
-                "stage": step.stage.name.lower(),
+                "stage": STAGE_NAMES[step.stage],
                 "slot": step.slot,
                 "module": step.module,
                 "socket": step.socket,
