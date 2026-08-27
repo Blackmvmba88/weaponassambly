@@ -40,12 +40,16 @@ class ResolvedBuild:
 
 
 def _vec3(value: object, field: str) -> tuple[float, float, float]:
-    if not isinstance(value, list) or len(value) != 3:
-        raise ValueError(f"{field} must contain exactly 3 numbers")
-    try:
-        return (float(value[0]), float(value[1]), float(value[2]))
-    except (TypeError, ValueError) as exc:
-        raise ValueError(f"{field} must contain exactly 3 numbers") from exc
+    if isinstance(value, list) and len(value) == 3:
+        v0, v1, v2 = value[0], value[1], value[2]
+        # Fast path for pre-floated tuples loaded from scene JSON, avoiding redundant float calls
+        if type(v0) is float and type(v1) is float and type(v2) is float:
+            return (v0, v1, v2)
+        try:
+            return (float(v0), float(v1), float(v2))
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"{field} must contain exactly 3 numbers") from exc
+    raise ValueError(f"{field} must contain exactly 3 numbers")
 
 
 def _transform_from_scene(socket: str, scene_manifest: dict[str, Any]) -> Transform:

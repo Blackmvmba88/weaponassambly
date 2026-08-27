@@ -16,6 +16,7 @@ REQUIRED_SOCKETS = frozenset(
         "SOCKET_GRIP",
     }
 )
+REQUIRED_FIELDS = ("location", "rotation_euler", "scale")
 
 
 @dataclass(frozen=True, slots=True)
@@ -62,7 +63,7 @@ def validate_scene_manifest(data: dict[str, Any]) -> SceneValidationResult:
         if not isinstance(transform, dict):
             errors.append(f"socket {socket_name} transform must be an object")
             continue
-        for field in ("location", "rotation_euler", "scale"):
+        for field in REQUIRED_FIELDS:
             value = transform.get(field)
             if not isinstance(value, list) or len(value) != 3:
                 errors.append(f"socket {socket_name}.{field} must contain 3 numbers")
@@ -76,22 +77,15 @@ def validate_scene_manifest(data: dict[str, Any]) -> SceneValidationResult:
                     break
             if has_non_number:
                 errors.append(f"socket {socket_name}.{field} must contain only numbers")
-
-        scale = transform.get("scale")
-        if isinstance(scale, list) and len(scale) == 3:
-            # Check scale values using a clean, readable loop that handles all types safely.
-            has_scale_error = False
-            for component in scale:
-                try:
-                    if abs(float(component) - 1.0) > 1e-6:
-                        has_scale_error = True
-                        break
-                except (TypeError, ValueError):
-                    # In case of non-floatable types, treat as validation error
-                    has_scale_error = True
-                    break
-            if has_scale_error:
-                errors.append(f"socket {socket_name} scale must be 1,1,1")
+            elif field == "scale":
+                # Scale check consolidated directly inside field loop to avoid redundant dict
+                # lookup and re-iteration
+                if (
+                    abs(float(value[0]) - 1.0) > 1e-6
+                    or abs(float(value[1]) - 1.0) > 1e-6
+                    or abs(float(value[2]) - 1.0) > 1e-6
+                ):
+                    errors.append(f"socket {socket_name} scale must be 1,1,1")
 
     collections = data.get("collections")
     if not isinstance(collections, list):
