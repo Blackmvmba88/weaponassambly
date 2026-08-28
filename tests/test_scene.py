@@ -1,6 +1,10 @@
 from __future__ import annotations
 
-from weaponassambly.scene import validate_scene_manifest
+import json
+
+import pytest
+
+from weaponassambly.scene import load_scene_manifest, validate_scene_manifest
 
 
 def valid_manifest():
@@ -70,3 +74,20 @@ def test_scene_manifest_rejects_unknown_socket():
     result = validate_scene_manifest(payload)
     assert not result.ok
     assert "unknown socket: SOCKET_UNKNOWN" in result.errors
+
+
+def test_load_scene_manifest_valid(tmp_path):
+    manifest_data = valid_manifest()
+    file_path = tmp_path / "scene_manifest.json"
+    file_path.write_text(json.dumps(manifest_data), encoding="utf-8")
+
+    loaded = load_scene_manifest(file_path)
+    assert loaded == manifest_data
+
+
+def test_load_scene_manifest_non_dict(tmp_path):
+    file_path = tmp_path / "invalid_manifest.json"
+    file_path.write_text(json.dumps(["not", "a", "dict"]), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="scene manifest root must be a JSON object"):
+        load_scene_manifest(file_path)
