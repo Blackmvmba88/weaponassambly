@@ -245,3 +245,12 @@ def test_cmd_parametric_validate_cli(tmp_path) -> None:
     assert cmd_parametric_validate(str(valid_file)) == 0
     assert cmd_parametric_validate(str(invalid_file)) == 1
     assert cmd_parametric_validate("non_existent_file.json") == 2
+
+    non_dict_file = tmp_path / "non_dict.json"
+    non_dict_file.write_text("[1, 2, 3]", encoding="utf-8")
+
+    syntax_error_file = tmp_path / "syntax_error.json"
+    syntax_error_file.write_text("{invalid_json", encoding="utf-8")
+
+    assert cmd_parametric_validate(str(non_dict_file)) == 2
+    assert cmd_parametric_validate(str(syntax_error_file)) == 2
