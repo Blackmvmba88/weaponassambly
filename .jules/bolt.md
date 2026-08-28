@@ -25,3 +25,7 @@ This is Bolt's journal for tracking critical learnings about performance optimiz
 ## 2025-02-14 - Precomputed Enum String Names and Native Tuple Sorting
 **Learning:** Accessing Enum `.name` and calling `.lower()` repeatedly in serialization loops incurs function call and reflection overhead. Precomputing a dictionary mapping Enum members to lowercased string names (`STAGE_NAMES`) eliminates dynamic reflection. Additionally, passing `key=lambda item: (item[0], item[1], item[2])` to `list.sort()` when elements are already 3-tuples introduces unnecessary lambda call overhead; relying on Python's native element-by-element tuple sorting (`list.sort()`) achieves pure C-level comparison speed.
 **Action:** Precompute Enum string lookup dicts for fixed Enums and prefer direct list sorting over redundant lambda key functions for tuple elements.
+
+## 2025-05-20 - Avoid Unrolling Validation Loops on Cold/Non-Bottleneck Paths
+**Learning:** Micro-optimizing parameter validation in non-hot paths by unrolling tuple loops into repetitive `isinstance` checks degrades code readability and maintainability without impacting real application performance.
+**Action:** Focus performance optimizations strictly on identified hot paths and high-frequency execution loops, preserving clean helper abstractions on non-bottleneck paths.
