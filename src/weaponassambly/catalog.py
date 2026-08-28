@@ -19,9 +19,7 @@ class CatalogValidationResult:
     errors: tuple[str, ...]
 
 
-def validate_catalog(data: dict[str, Any]) -> CatalogValidationResult:
-    errors: list[str] = []
-
+def _validate_header(data: dict[str, Any], errors: list[str]) -> None:
     if data.get("catalog_version") != CATALOG_VERSION:
         errors.append(f"unsupported catalog_version: {data.get('catalog_version')!r}")
 
@@ -37,7 +35,8 @@ def validate_catalog(data: dict[str, Any]) -> CatalogValidationResult:
     if not isinstance(root, str) or not root:
         errors.append("root must be a non-empty string")
 
-    slots = data.get("slots")
+
+def _validate_slots(slots: Any, errors: list[str]) -> None:
     if not isinstance(slots, dict):
         errors.append("slots must be an object")
         slots = {}
@@ -76,10 +75,11 @@ def validate_catalog(data: dict[str, Any]) -> CatalogValidationResult:
                 errors.append(f"module ID registered more than once: {module}")
             module_ids.add(module)
 
-    cosmetics = data.get("cosmetics")
+
+def _validate_cosmetics(cosmetics: Any, errors: list[str]) -> None:
     if not isinstance(cosmetics, dict):
         errors.append("cosmetics must be an object")
-        cosmetics = {}
+        return
 
     for kind, values in cosmetics.items():
         if not isinstance(kind, str) or not kind:
@@ -94,6 +94,12 @@ def validate_catalog(data: dict[str, Any]) -> CatalogValidationResult:
         if len(values) != len(set(values)):
             errors.append(f"cosmetic {kind} contains duplicate values")
 
+
+def validate_catalog(data: dict[str, Any]) -> CatalogValidationResult:
+    errors: list[str] = []
+    _validate_header(data, errors)
+    _validate_slots(data.get("slots"), errors)
+    _validate_cosmetics(data.get("cosmetics"), errors)
     return CatalogValidationResult(ok=not errors, errors=tuple(errors))
 
 
