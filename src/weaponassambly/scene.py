@@ -32,18 +32,7 @@ def load_scene_manifest(path: str | Path) -> dict[str, Any]:
     return data
 
 
-def validate_scene_manifest(data: dict[str, Any]) -> SceneValidationResult:
-    errors: list[str] = []
-
-    if data.get("scene_schema_version") != SCENE_SCHEMA_VERSION:
-        errors.append(f"unsupported scene_schema_version: {data.get('scene_schema_version')!r}")
-
-    if data.get("platform") != "BM-S7":
-        errors.append(f"unsupported platform: {data.get('platform')!r}")
-
-    if data.get("root") != REQUIRED_ROOT:
-        errors.append(f"root must be {REQUIRED_ROOT}")
-
+def _validate_sockets(data: dict[str, Any], errors: list[str]) -> None:
     sockets = data.get("sockets")
     if not isinstance(sockets, dict):
         errors.append("sockets must be an object")
@@ -93,6 +82,8 @@ def validate_scene_manifest(data: dict[str, Any]) -> SceneValidationResult:
             if has_scale_error:
                 errors.append(f"socket {socket_name} scale must be 1,1,1")
 
+
+def _validate_collections(data: dict[str, Any], errors: list[str]) -> None:
     collections = data.get("collections")
     if not isinstance(collections, list):
         errors.append("collections must be a list of strings")
@@ -102,5 +93,21 @@ def validate_scene_manifest(data: dict[str, Any]) -> SceneValidationResult:
             if not isinstance(item, str):
                 errors.append("collections must be a list of strings")
                 break
+
+
+def validate_scene_manifest(data: dict[str, Any]) -> SceneValidationResult:
+    errors: list[str] = []
+
+    if data.get("scene_schema_version") != SCENE_SCHEMA_VERSION:
+        errors.append(f"unsupported scene_schema_version: {data.get('scene_schema_version')!r}")
+
+    if data.get("platform") != "BM-S7":
+        errors.append(f"unsupported platform: {data.get('platform')!r}")
+
+    if data.get("root") != REQUIRED_ROOT:
+        errors.append(f"root must be {REQUIRED_ROOT}")
+
+    _validate_sockets(data, errors)
+    _validate_collections(data, errors)
 
     return SceneValidationResult(ok=not errors, errors=tuple(errors))
