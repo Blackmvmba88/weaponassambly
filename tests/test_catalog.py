@@ -59,3 +59,15 @@ def test_cosmetic_allowed_without_platform_and_cosmetic_kind_values():
     # Test cosmetic_allowed when platform is None
     assert cosmetic_allowed("finish", "polished_black", None) is True
     assert cosmetic_allowed("finish", "nonexistent", None) is False
+
+
+def test_platform_modules():
+    from weaponassambly.registry import platform_modules
+
+    modules = platform_modules("BM-S7")
+    assert modules is not None
+    assert "top" in modules
+    assert isinstance(modules["top"], frozenset)
+    assert "MAMBA_RD01" in modules["top"]
+
+    assert platform_modules("NONEXISTENT_PLATFORM") is None
