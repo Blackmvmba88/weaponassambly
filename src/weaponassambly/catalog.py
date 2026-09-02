@@ -42,8 +42,9 @@ def validate_catalog(data: dict[str, Any]) -> CatalogValidationResult:
         errors.append("slots must be an object")
         slots = {}
 
-    unknown_slots = sorted(set(slots) - EXPECTED_SLOTS)
-    missing_slots = sorted(EXPECTED_SLOTS - set(slots))
+    slots_keys = set(slots)
+    unknown_slots = sorted(slots_keys - EXPECTED_SLOTS)
+    missing_slots = sorted(EXPECTED_SLOTS - slots_keys)
     for slot in unknown_slots:
         errors.append(f"unknown slot in catalog: {slot}")
     for slot in missing_slots:
@@ -65,7 +66,13 @@ def validate_catalog(data: dict[str, Any]) -> CatalogValidationResult:
         if not isinstance(modules, list):
             errors.append(f"slot {slot}.modules must be a list")
             continue
-        if not all(isinstance(module, str) and module for module in modules):
+        # Avoid all(...) generator allocation overhead by checking elements with a loop
+        has_non_string_module = False
+        for module in modules:
+            if not isinstance(module, str) or not module:
+                has_non_string_module = True
+                break
+        if has_non_string_module:
             errors.append(f"slot {slot}.modules must contain non-empty strings")
             continue
         if len(modules) != len(set(modules)):
@@ -88,7 +95,13 @@ def validate_catalog(data: dict[str, Any]) -> CatalogValidationResult:
         if not isinstance(values, list):
             errors.append(f"cosmetic {kind} must be a list")
             continue
-        if not all(isinstance(value, str) and value for value in values):
+        # Avoid all(...) generator allocation overhead by checking elements with a loop
+        has_non_string_value = False
+        for value in values:
+            if not isinstance(value, str) or not value:
+                has_non_string_value = True
+                break
+        if has_non_string_value:
             errors.append(f"cosmetic {kind} must contain non-empty strings")
             continue
         if len(values) != len(set(values)):
