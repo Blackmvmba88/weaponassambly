@@ -20,7 +20,8 @@ from .validator import validate_build
 
 def cmd_parametric_validate(path: str) -> int:
     try:
-        data = json.loads(Path(path).read_text(encoding="utf-8"))
+        with Path(path).open("r", encoding="utf-8") as f:
+            data = json.load(f)
         if not isinstance(data, dict):
             print("ERROR: descriptor root must be a JSON object", file=sys.stderr)
             return 2
