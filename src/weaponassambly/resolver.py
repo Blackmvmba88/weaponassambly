@@ -39,22 +39,23 @@ class ResolvedBuild:
     assembly: dict[str, Any]
 
 
-def _vec3(value: object, field: str) -> tuple[float, float, float]:
-    if not isinstance(value, list) or len(value) != 3:
-        raise ValueError(f"{field} must contain exactly 3 numbers")
-    try:
-        return (float(value[0]), float(value[1]), float(value[2]))
-    except (TypeError, ValueError) as exc:
-        raise ValueError(f"{field} must contain exactly 3 numbers") from exc
+def _vec3(value: object, socket: str, field: str) -> tuple[float, float, float]:
+    # Use exact list check to fast-path standard JSON lists and defer string formatting
+    # for error exceptions only.
+    if type(value) is list and len(value) == 3:
+        try:
+            return (float(value[0]), float(value[1]), float(value[2]))
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"{socket}.{field} must contain exactly 3 numbers") from exc
+    raise ValueError(f"{socket}.{field} must contain exactly 3 numbers")
 
 
-def _transform_from_scene(socket: str, scene_manifest: dict[str, Any]) -> Transform:
-    sockets = scene_manifest["sockets"]
+def _transform_from_scene(sockets: dict[str, Any], socket: str) -> Transform:
     transform = sockets[socket]
     return Transform(
-        location=_vec3(transform["location"], f"{socket}.location"),
-        rotation_euler=_vec3(transform["rotation_euler"], f"{socket}.rotation_euler"),
-        scale=_vec3(transform["scale"], f"{socket}.scale"),
+        location=_vec3(transform["location"], socket, "location"),
+        rotation_euler=_vec3(transform["rotation_euler"], socket, "rotation_euler"),
+        scale=_vec3(transform["scale"], socket, "scale"),
     )
 
 
@@ -84,6 +85,8 @@ def resolve_build(build: BuildConfig, scene_manifest: dict[str, Any]) -> Resolve
         raise ValueError(f"root mismatch: catalog={expected_root} scene={scene_manifest['root']}")
 
     plan = plan_build(build)
+    # Extract sockets dict once to avoid re-indexing scene_manifest inside iteration
+    sockets = scene_manifest["sockets"]
     resolved_modules = tuple(
         ResolvedModule(
             order=step.order,
@@ -91,9 +94,21 @@ def resolve_build(build: BuildConfig, scene_manifest: dict[str, Any]) -> Resolve
             slot=step.slot,
             module=step.module,
             socket=step.socket,
-            transform=_transform_from_scene(step.socket, scene_manifest),
+            transform=_transform_from_scene(sockets, step.socket),
         )
         for step in plan.steps
+    )
+
+    # Fast-path dict construction when size <= 1 to skip redundant sorting
+    cosmetics = (
+        dict(sorted(build.cosmetics.items()))
+        if len(build.cosmetics) > 1
+        else dict(build.cosmetics)
+    )
+    assembly = (
+        dict(sorted(build.assembly.items()))
+        if len(build.assembly) > 1
+        else dict(build.assembly)
     )
 
     return ResolvedBuild(
@@ -102,8 +117,8 @@ def resolve_build(build: BuildConfig, scene_manifest: dict[str, Any]) -> Resolve
         display_name=plan.display_name,
         root=expected_root,
         modules=resolved_modules,
-        cosmetics=dict(sorted(build.cosmetics.items())),
-        assembly=dict(sorted(build.assembly.items())),
+        cosmetics=cosmetics,
+        assembly=assembly,
     )
 
 
