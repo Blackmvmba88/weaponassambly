@@ -39,22 +39,24 @@ class ResolvedBuild:
     assembly: dict[str, Any]
 
 
-def _vec3(value: object, field: str) -> tuple[float, float, float]:
+def _vec3(value: object, socket: str, field: str) -> tuple[float, float, float]:
     if not isinstance(value, list) or len(value) != 3:
-        raise ValueError(f"{field} must contain exactly 3 numbers")
+        raise ValueError(f"{socket}.{field} must contain exactly 3 numbers")
     try:
         return (float(value[0]), float(value[1]), float(value[2]))
     except (TypeError, ValueError) as exc:
-        raise ValueError(f"{field} must contain exactly 3 numbers") from exc
+        raise ValueError(f"{socket}.{field} must contain exactly 3 numbers") from exc
 
 
 def _transform_from_scene(socket: str, scene_manifest: dict[str, Any]) -> Transform:
     sockets = scene_manifest["sockets"]
     transform = sockets[socket]
+    # Pass static field name constants and defer string formatting until exception
+    # to avoid eager f-string allocations in hot resolution paths.
     return Transform(
-        location=_vec3(transform["location"], f"{socket}.location"),
-        rotation_euler=_vec3(transform["rotation_euler"], f"{socket}.rotation_euler"),
-        scale=_vec3(transform["scale"], f"{socket}.scale"),
+        location=_vec3(transform["location"], socket, "location"),
+        rotation_euler=_vec3(transform["rotation_euler"], socket, "rotation_euler"),
+        scale=_vec3(transform["scale"], socket, "scale"),
     )
 
 
