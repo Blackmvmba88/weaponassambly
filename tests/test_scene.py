@@ -70,3 +70,34 @@ def test_scene_manifest_rejects_unknown_socket():
     result = validate_scene_manifest(payload)
     assert not result.ok
     assert "unknown socket: SOCKET_UNKNOWN" in result.errors
+
+
+def test_scene_manifest_preserves_numeric_subclass_compatibility():
+    class SceneInt(int):
+        pass
+
+    payload = valid_manifest()
+    payload["sockets"]["SOCKET_TOP"]["location"] = [SceneInt(0), SceneInt(0), SceneInt(0)]
+
+    result = validate_scene_manifest(payload)
+    assert result.ok
+    assert result.errors == ()
+
+
+def test_scene_manifest_preserves_invalid_scale_diagnostics():
+    payload = valid_manifest()
+    payload["sockets"]["SOCKET_MAG"]["scale"] = [1.0, "bad", 1.0]
+
+    result = validate_scene_manifest(payload)
+    assert not result.ok
+    assert "socket SOCKET_MAG.scale must contain only numbers" in result.errors
+    assert "socket SOCKET_MAG scale must be 1,1,1" in result.errors
+
+
+def test_scene_manifest_rejects_bool_vector_component():
+    payload = valid_manifest()
+    payload["sockets"]["SOCKET_GRIP"]["location"] = [0.0, True, 0.0]
+
+    result = validate_scene_manifest(payload)
+    assert not result.ok
+    assert "socket SOCKET_GRIP.location must contain only numbers" in result.errors
