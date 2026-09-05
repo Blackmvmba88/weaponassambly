@@ -21,16 +21,12 @@ class AssemblyStage(IntEnum):
 # and lower() string allocations in hot paths.
 STAGE_NAMES: dict[AssemblyStage, str] = {stage: stage.name.lower() for stage in AssemblyStage}
 
-
 SLOT_TO_STAGE: dict[str, AssemblyStage] = {
     "front": AssemblyStage.FRONT,
     "bottom": AssemblyStage.BOTTOM,
     "top": AssemblyStage.TOP,
     "mag": AssemblyStage.MAG,
 }
-
-# Precomputed lowercased stage names to avoid repeated string allocation and dynamic Enum reflection
-STAGE_NAMES: dict[AssemblyStage, str] = {stage: stage.name.lower() for stage in AssemblyStage}
 
 
 @dataclass(frozen=True, slots=True)

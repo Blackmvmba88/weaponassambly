@@ -12,6 +12,18 @@ def build_manifest(build: BuildConfig) -> dict[str, Any]:
     """Produce a game-engine-neutral manifest for a validated build."""
     plan = plan_build(build)
 
+    # Short-circuit dict sorting for 0 or 1 element mappings (len(d) <= 1)
+    cosmetics = (
+        dict(build.cosmetics)
+        if len(build.cosmetics) <= 1
+        else dict(sorted(build.cosmetics.items()))
+    )
+    assembly = (
+        dict(build.assembly)
+        if len(build.assembly) <= 1
+        else dict(sorted(build.assembly.items()))
+    )
+
     return {
         "manifest_version": MANIFEST_VERSION,
         "schema_version": build.schema_version,
@@ -28,8 +40,8 @@ def build_manifest(build: BuildConfig) -> dict[str, Any]:
             }
             for step in plan.steps
         ],
-        "cosmetics": dict(sorted(build.cosmetics.items())),
-        "assembly": dict(sorted(build.assembly.items())),
+        "cosmetics": cosmetics,
+        "assembly": assembly,
     }
 
 
