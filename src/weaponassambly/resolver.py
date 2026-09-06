@@ -5,6 +5,7 @@ from typing import Any
 
 from .assembly import STAGE_NAMES, plan_build
 from .catalog import get_catalog
+from .manifest import _sorted_dict
 from .models import BuildConfig
 from .scene import validate_scene_manifest
 
@@ -102,8 +103,8 @@ def resolve_build(build: BuildConfig, scene_manifest: dict[str, Any]) -> Resolve
         display_name=plan.display_name,
         root=expected_root,
         modules=resolved_modules,
-        cosmetics=dict(sorted(build.cosmetics.items())),
-        assembly=dict(sorted(build.assembly.items())),
+        cosmetics=_sorted_dict(build.cosmetics),
+        assembly=_sorted_dict(build.assembly),
     )
 
 
