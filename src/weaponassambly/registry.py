@@ -24,7 +24,13 @@ def platform_modules(platform: str) -> dict[str, set[str]] | None:
     return {slot: set(spec["modules"]) for slot, spec in catalog["slots"].items()}
 
 
+@lru_cache(maxsize=512)
 def module_allowed(platform: str, slot: str, module: str) -> bool:
+    """Check if a module is allowed for a given platform and slot.
+
+    Uses an LRU cache with an immutable return type (bool) to avoid redundant
+    catalog traversals and set operations for static asset definitions.
+    """
     return module in slot_modules(platform, slot)
 
 
