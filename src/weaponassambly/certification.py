@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from dataclasses import dataclass
 from typing import Any
 
@@ -10,14 +11,39 @@ from .resolver import ResolvedBuild, resolved_build_as_dict
 CERTIFICATION_VERSION = 1
 
 
+def _normalize_json_value(value: Any) -> Any:
+    """Normalize JSON values so semantically equivalent numbers hash identically.
+
+    JSON has a single number type, while Python distinguishes ``int`` and ``float``.
+    Resolved payloads that compare equal (for example ``1`` and ``1.0`` or ``0``
+    and ``-0.0``) therefore need one canonical representation before serialization.
+    """
+    if isinstance(value, bool) or value is None or isinstance(value, (str, int)):
+        return value
+    if isinstance(value, float):
+        if not math.isfinite(value):
+            raise ValueError("canonical JSON does not support NaN or Infinity")
+        if value == 0.0:
+            return 0
+        if value.is_integer():
+            return int(value)
+        return value
+    if isinstance(value, dict):
+        return {key: _normalize_json_value(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_normalize_json_value(item) for item in value]
+    return value
+
+
 def canonical_json_bytes(payload: Any) -> bytes:
     """Serialize JSON-compatible data deterministically for hashing.
 
-    The representation is intentionally compact and independent of pretty-printing
-    so the same resolved build produces the same digest across CLI invocations.
+    The representation is intentionally compact and independent of pretty-printing,
+    dictionary insertion order, and equivalent Python numeric spellings.
     """
+    normalized = _normalize_json_value(payload)
     return json.dumps(
-        payload,
+        normalized,
         sort_keys=True,
         separators=(",", ":"),
         ensure_ascii=False,
