@@ -101,3 +101,16 @@ def test_scene_manifest_rejects_bool_vector_component():
     result = validate_scene_manifest(payload)
     assert not result.ok
     assert "socket SOCKET_GRIP.location must contain only numbers" in result.errors
+
+
+def test_scene_manifest_preserves_scale_subclass_float_coercion():
+    class SceneInt(int):
+        def __sub__(self, other):
+            raise AssertionError("scale validation must coerce numeric subclasses with float()")
+
+    payload = valid_manifest()
+    payload["sockets"]["SOCKET_TOP"]["scale"] = [SceneInt(1), SceneInt(1), SceneInt(1)]
+
+    result = validate_scene_manifest(payload)
+    assert result.ok
+    assert result.errors == ()
