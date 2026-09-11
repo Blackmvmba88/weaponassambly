@@ -66,6 +66,15 @@ def test_canonical_json_rejects_non_finite_numbers() -> None:
         canonical_json_bytes({"value": float("inf")})
 
 
+def test_canonical_json_escapes_lone_surrogates() -> None:
+    payload = {"display_name": "phantom\ud800"}
+
+    canonical = canonical_json_bytes(payload)
+
+    assert canonical == b'{"display_name":"phantom\\ud800"}'
+    assert len(sha256_digest(payload)) == 64
+
+
 def test_certification_is_deterministic() -> None:
     first = certify_resolved_build(make_resolved())
     second = certify_resolved_build(make_resolved())
