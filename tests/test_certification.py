@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from weaponassambly.certification import (
     canonical_json_bytes,
     certification_as_dict,
@@ -41,6 +43,27 @@ def test_canonical_json_is_order_independent() -> None:
 
     assert canonical_json_bytes(left) == canonical_json_bytes(right)
     assert sha256_digest(left) == sha256_digest(right)
+
+
+def test_canonical_json_normalizes_equivalent_numbers() -> None:
+    integer_payload = {"assembly": {"count": 1, "offset": 0}}
+    float_payload = {"assembly": {"count": 1.0, "offset": -0.0}}
+
+    assert canonical_json_bytes(integer_payload) == canonical_json_bytes(float_payload)
+    assert sha256_digest(integer_payload) == sha256_digest(float_payload)
+
+
+def test_canonical_json_preserves_fractional_numbers_and_booleans() -> None:
+    assert canonical_json_bytes({"value": 1.5}) != canonical_json_bytes({"value": 1})
+    assert canonical_json_bytes({"value": True}) != canonical_json_bytes({"value": 1})
+
+
+def test_canonical_json_rejects_non_finite_numbers() -> None:
+    with pytest.raises(ValueError, match="NaN or Infinity"):
+        canonical_json_bytes({"value": float("nan")})
+
+    with pytest.raises(ValueError, match="NaN or Infinity"):
+        canonical_json_bytes({"value": float("inf")})
 
 
 def test_certification_is_deterministic() -> None:
