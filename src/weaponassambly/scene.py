@@ -25,8 +25,9 @@ class SceneValidationResult:
 
 
 def load_scene_manifest(path: str | Path) -> dict[str, Any]:
-    raw = Path(path).read_text(encoding="utf-8")
-    data = json.loads(raw)
+    file_path = Path(path)
+    with file_path.open(encoding="utf-8") as handle:
+        data = json.load(handle)
     if not isinstance(data, dict):
         raise ValueError("scene manifest root must be a JSON object")
     return data
