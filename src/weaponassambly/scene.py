@@ -16,6 +16,13 @@ REQUIRED_SOCKETS = frozenset(
         "SOCKET_GRIP",
     }
 )
+REQUIRED_SOCKETS_ORDERED = (
+    "SOCKET_BOTTOM",
+    "SOCKET_FRONT",
+    "SOCKET_GRIP",
+    "SOCKET_MAG",
+    "SOCKET_TOP",
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -49,9 +56,8 @@ def validate_scene_manifest(data: dict[str, Any]) -> SceneValidationResult:
         errors.append("sockets must be an object")
         sockets = {}
 
-    # Optimized set difference: sorted list of REQUIRED_SOCKETS difference with sockets.
-    # set.difference() is cleaner and faster than converting sockets to a set.
-    missing = sorted(REQUIRED_SOCKETS.difference(sockets))
+    # Fast list comprehension over presorted sockets avoids set difference and sort overhead
+    missing = [socket for socket in REQUIRED_SOCKETS_ORDERED if socket not in sockets]
     for socket in missing:
         errors.append(f"missing socket: {socket}")
 
@@ -68,30 +74,26 @@ def validate_scene_manifest(data: dict[str, Any]) -> SceneValidationResult:
                 errors.append(f"socket {socket_name}.{field} must contain 3 numbers")
                 continue
 
-            # Check components using loop to maintain readability while avoiding generator overhead
+            # Exact type check avoids isinstance overhead while excluding booleans
             has_non_number = False
             for component in value:
-                if not isinstance(component, (int, float)) or isinstance(component, bool):
+                comp_type = type(component)
+                if (comp_type is not float and comp_type is not int) or comp_type is bool:
                     has_non_number = True
                     break
             if has_non_number:
                 errors.append(f"socket {socket_name}.{field} must contain only numbers")
+                continue
 
-        scale = transform.get("scale")
-        if isinstance(scale, list) and len(scale) == 3:
-            # Check scale values using a clean, readable loop that handles all types safely.
-            has_scale_error = False
-            for component in scale:
-                try:
-                    if abs(float(component) - 1.0) > 1e-6:
+            # Validate unit scale directly inside loop pass to avoid redundant get("scale") call
+            if field == "scale":
+                has_scale_error = False
+                for component in value:
+                    if abs(component - 1.0) > 1e-6:
                         has_scale_error = True
                         break
-                except (TypeError, ValueError):
-                    # In case of non-floatable types, treat as validation error
-                    has_scale_error = True
-                    break
-            if has_scale_error:
-                errors.append(f"socket {socket_name} scale must be 1,1,1")
+                if has_scale_error:
+                    errors.append(f"socket {socket_name} scale must be 1,1,1")
 
     collections = data.get("collections")
     if not isinstance(collections, list):
