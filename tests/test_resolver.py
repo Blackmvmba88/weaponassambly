@@ -4,7 +4,7 @@ import pytest
 
 from weaponassambly.adapters.generic_json import GenericJsonAdapter
 from weaponassambly.models import BuildConfig
-from weaponassambly.resolver import resolve_build
+from weaponassambly.resolver import _vec3, resolve_build
 
 
 def make_build() -> BuildConfig:
@@ -94,3 +94,27 @@ def test_generic_adapter_emits_runtime_nodes() -> None:
         "DUAL",
     ]
     assert payload["nodes"][1]["socket"] == "SOCKET_TOP"
+
+
+def test_vec3_preserves_list_subclass_compatibility() -> None:
+    class VectorList(list):
+        pass
+
+    assert _vec3(VectorList([1, 2, 3]), "SOCKET_TOP", "location") == (1.0, 2.0, 3.0)
+
+
+def test_vec3_preserves_float_coercion_for_custom_values() -> None:
+    class Floatable:
+        def __init__(self, value: float):
+            self.value = value
+
+        def __float__(self) -> float:
+            return self.value
+
+    value = [Floatable(1.0), Floatable(2.0), Floatable(3.0)]
+    assert _vec3(value, "SOCKET_TOP", "location") == (1.0, 2.0, 3.0)
+
+
+def test_vec3_preserves_error_message() -> None:
+    with pytest.raises(ValueError, match=r"SOCKET_TOP\.location must contain exactly 3 numbers"):
+        _vec3([1.0, 2.0], "SOCKET_TOP", "location")
