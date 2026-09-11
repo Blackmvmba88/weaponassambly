@@ -7,15 +7,14 @@ from typing import Any
 
 SCENE_SCHEMA_VERSION = 1
 REQUIRED_ROOT = "BM_SIDEARM_ROOT"
-REQUIRED_SOCKETS = frozenset(
-    {
-        "SOCKET_TOP",
-        "SOCKET_BOTTOM",
-        "SOCKET_FRONT",
-        "SOCKET_MAG",
-        "SOCKET_GRIP",
-    }
+REQUIRED_SOCKETS_ORDERED = (
+    "SOCKET_BOTTOM",
+    "SOCKET_FRONT",
+    "SOCKET_GRIP",
+    "SOCKET_MAG",
+    "SOCKET_TOP",
 )
+REQUIRED_SOCKETS = frozenset(REQUIRED_SOCKETS_ORDERED)
 TRANSFORM_FIELDS = ("location", "rotation_euler", "scale")
 
 
@@ -50,9 +49,9 @@ def validate_scene_manifest(data: dict[str, Any]) -> SceneValidationResult:
         errors.append("sockets must be an object")
         sockets = {}
 
-    # Optimized set difference: sorted list of REQUIRED_SOCKETS difference with sockets.
-    # set.difference() is cleaner and faster than converting sockets to a set.
-    missing = sorted(REQUIRED_SOCKETS.difference(sockets))
+    # Scan a pre-sorted fixed tuple to avoid allocating a set difference and sorting it
+    # on every validation while preserving the validator's existing error order.
+    missing = [socket for socket in REQUIRED_SOCKETS_ORDERED if socket not in sockets]
     for socket in missing:
         errors.append(f"missing socket: {socket}")
 
