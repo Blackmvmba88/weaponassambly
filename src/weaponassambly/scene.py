@@ -94,7 +94,18 @@ def validate_scene_manifest(data: dict[str, Any]) -> SceneValidationResult:
                             break
             elif field == "scale":
                 for component in value:
-                    if abs(component - 1.0) > 1e-6:
+                    component_type = type(component)
+                    if component_type is int or component_type is float:
+                        delta = abs(component - 1.0)
+                    else:
+                        # Accepted numeric subclasses retain the legacy float coercion so
+                        # overloaded arithmetic cannot change validation behavior.
+                        try:
+                            delta = abs(float(component) - 1.0)
+                        except (TypeError, ValueError):
+                            errors.append(f"socket {socket_name} scale must be 1,1,1")
+                            break
+                    if delta > 1e-6:
                         errors.append(f"socket {socket_name} scale must be 1,1,1")
                         break
 
