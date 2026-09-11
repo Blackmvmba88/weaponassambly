@@ -39,14 +39,16 @@ def canonical_json_bytes(payload: Any) -> bytes:
     """Serialize JSON-compatible data deterministically for hashing.
 
     The representation is intentionally compact and independent of pretty-printing,
-    dictionary insertion order, and equivalent Python numeric spellings.
+    dictionary insertion order, equivalent Python numeric spellings, and host Unicode
+    encoding behavior. Non-ASCII code points are escaped so lone surrogates accepted
+    by JSON loaders remain representable in the canonical UTF-8 byte stream.
     """
     normalized = _normalize_json_value(payload)
     return json.dumps(
         normalized,
         sort_keys=True,
         separators=(",", ":"),
-        ensure_ascii=False,
+        ensure_ascii=True,
         allow_nan=False,
     ).encode("utf-8")
 
