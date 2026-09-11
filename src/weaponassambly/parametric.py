@@ -36,7 +36,21 @@ class ParametricValidationResult:
 
 
 def _number(value: object) -> bool:
-    return isinstance(value, (int, float)) and not isinstance(value, bool)
+    value_type = type(value)
+    if value_type is int or value_type is float:
+        return True
+    if value_type is bool:
+        return False
+    return isinstance(value, (int, float))
+
+
+def _integer(value: object) -> bool:
+    value_type = type(value)
+    if value_type is int:
+        return True
+    if value_type is bool:
+        return False
+    return isinstance(value, int)
 
 
 def validate_descriptor(descriptor: ObjectDescriptor) -> ParametricValidationResult:
@@ -98,7 +112,7 @@ def _validate_axial_body(parameters: dict[str, object]) -> list[str]:
         errors.append("wall must be smaller than both radii")
     if bevel < 0:
         errors.append("bevel must be >= 0")
-    if not isinstance(segments, int) or isinstance(segments, bool):
+    if not _integer(segments):
         errors.append("segments must be an integer")
     elif segments < 3:
         errors.append("segments must be >= 3")

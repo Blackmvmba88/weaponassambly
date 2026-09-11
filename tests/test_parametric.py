@@ -245,3 +245,64 @@ def test_cmd_parametric_validate_cli(tmp_path) -> None:
     assert cmd_parametric_validate(str(valid_file)) == 0
     assert cmd_parametric_validate(str(invalid_file)) == 1
     assert cmd_parametric_validate("non_existent_file.json") == 2
+
+
+def test_parametric_validation_preserves_numeric_subclasses() -> None:
+    class SceneFloat(float):
+        pass
+
+    descriptor = ObjectDescriptor.from_mapping(
+        {
+            "id": "OBJ_SUBCLASS",
+            "family": "box_body",
+            "parameters": {
+                "width": SceneFloat(1.2),
+                "height": SceneFloat(0.8),
+                "depth": SceneFloat(1.0),
+            },
+        }
+    )
+
+    result = validate_descriptor(descriptor)
+    assert result.ok is True
+    assert result.errors == ()
+
+
+def test_axial_segments_preserve_int_subclass_compatibility() -> None:
+    class SegmentCount(int):
+        pass
+
+    descriptor = ObjectDescriptor.from_mapping(
+        {
+            "id": "OBJ_SEGMENTS",
+            "family": "axial_body",
+            "parameters": {
+                "height": 1.0,
+                "radius_top": 0.25,
+                "radius_bottom": 0.25,
+                "segments": SegmentCount(32),
+            },
+        }
+    )
+
+    result = validate_descriptor(descriptor)
+    assert result.ok is True
+    assert result.errors == ()
+
+
+def test_parametric_numeric_fields_still_reject_bool() -> None:
+    descriptor = ObjectDescriptor.from_mapping(
+        {
+            "id": "OBJ_BOOL",
+            "family": "box_body",
+            "parameters": {
+                "width": True,
+                "height": 1.0,
+                "depth": 1.0,
+            },
+        }
+    )
+
+    result = validate_descriptor(descriptor)
+    assert result.ok is False
+    assert "width must be a number" in result.errors
