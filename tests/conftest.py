@@ -10,7 +10,12 @@ from weaponassambly.catalog import (
     slot_modules,
     socket_for_slot,
 )
-from weaponassambly.registry import cosmetic_allowed, cosmetic_kinds, platform_modules
+from weaponassambly.registry import (
+    cosmetic_allowed,
+    cosmetic_kinds,
+    module_allowed,
+    platform_modules,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -31,3 +36,4 @@ def _clear_all_caches():
     cosmetic_kinds.cache_clear()
     cosmetic_allowed.cache_clear()
     platform_modules.cache_clear()
+    module_allowed.cache_clear()

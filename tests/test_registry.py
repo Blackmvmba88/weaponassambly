@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from weaponassambly.registry import platform_modules
+from weaponassambly.registry import module_allowed, platform_modules
 
 
 def test_platform_modules_reuses_cached_immutable_mapping():
@@ -27,3 +27,15 @@ def test_platform_modules_unknown_platform_is_cached_as_none():
     assert platform_modules("UNKNOWN") is None
     assert platform_modules("UNKNOWN") is None
     assert platform_modules.cache_info().hits == 1
+
+
+def test_module_allowed_caches_allowed_lookup():
+    assert module_allowed("BM-S7", "top", "MAMBA_RD01") is True
+    assert module_allowed("BM-S7", "top", "MAMBA_RD01") is True
+    assert module_allowed.cache_info().hits == 1
+
+
+def test_module_allowed_caches_rejected_lookup():
+    assert module_allowed("BM-S7", "top", "NOT_REGISTERED") is False
+    assert module_allowed("BM-S7", "top", "NOT_REGISTERED") is False
+    assert module_allowed.cache_info().hits == 1

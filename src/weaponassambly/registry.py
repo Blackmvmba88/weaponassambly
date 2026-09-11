@@ -33,7 +33,9 @@ def platform_modules(platform: str) -> Mapping[str, frozenset[str]] | None:
     return MappingProxyType(modules)
 
 
+@lru_cache(maxsize=512)
 def module_allowed(platform: str, slot: str, module: str) -> bool:
+    """Return whether a module is allowed for a platform slot, caching the boolean result."""
     return module in slot_modules(platform, slot)
 
 
