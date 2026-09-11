@@ -45,6 +45,52 @@ def test_catalog_validator_rejects_missing_slot():
     assert "missing slot in catalog: top" in result.errors
 
 
+def test_catalog_validator_preserves_slot_error_order():
+    catalog = get_catalog("BM-S7")
+    assert catalog is not None
+    slots = dict(catalog["slots"])
+    del slots["top"]
+    slots["zzz"] = {"socket": "SOCKET_ZZZ", "modules": []}
+    slots["aaa"] = {"socket": "SOCKET_AAA", "modules": []}
+
+    result = validate_catalog({**catalog, "slots": slots})
+    slot_errors = [
+        error
+        for error in result.errors
+        if error.startswith("unknown slot in catalog:") or error.startswith("missing slot in catalog:")
+    ]
+
+    assert slot_errors == [
+        "unknown slot in catalog: aaa",
+        "unknown slot in catalog: zzz",
+        "missing slot in catalog: top",
+    ]
+
+
+def test_catalog_validator_rejects_invalid_module_string():
+    catalog = get_catalog("BM-S7")
+    assert catalog is not None
+    slots = {name: dict(spec) for name, spec in catalog["slots"].items()}
+    slots["top"]["modules"] = ["MAMBA_RD01", ""]
+
+    result = validate_catalog({**catalog, "slots": slots})
+
+    assert not result.ok
+    assert "slot top.modules must contain non-empty strings" in result.errors
+
+
+def test_catalog_validator_rejects_invalid_cosmetic_string():
+    catalog = get_catalog("BM-S7")
+    assert catalog is not None
+    cosmetics = {name: list(values) for name, values in catalog["cosmetics"].items()}
+    cosmetics["finish"] = ["polished_black", ""]
+
+    result = validate_catalog({**catalog, "cosmetics": cosmetics})
+
+    assert not result.ok
+    assert "cosmetic finish must contain non-empty strings" in result.errors
+
+
 def test_cosmetic_allowed_without_platform_and_cosmetic_kind_values():
     from weaponassambly.catalog import cosmetic_kind_values
     from weaponassambly.registry import cosmetic_allowed
