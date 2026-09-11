@@ -50,6 +50,21 @@ def test_scene_manifest_rejects_missing_socket():
     assert "missing socket: SOCKET_TOP" in result.errors
 
 
+def test_scene_manifest_reports_missing_sockets_in_stable_order():
+    payload = valid_manifest()
+    for socket_name in ("SOCKET_TOP", "SOCKET_BOTTOM", "SOCKET_GRIP"):
+        del payload["sockets"][socket_name]
+
+    result = validate_scene_manifest(payload)
+    missing_errors = [error for error in result.errors if error.startswith("missing socket:")]
+
+    assert missing_errors == [
+        "missing socket: SOCKET_BOTTOM",
+        "missing socket: SOCKET_GRIP",
+        "missing socket: SOCKET_TOP",
+    ]
+
+
 def test_scene_manifest_rejects_non_unit_socket_scale():
     payload = valid_manifest()
     payload["sockets"]["SOCKET_MAG"]["scale"] = [1.0, 2.0, 1.0]
