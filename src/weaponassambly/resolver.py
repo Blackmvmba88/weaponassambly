@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from ._mapping import sorted_dict_copy
 from .assembly import STAGE_NAMES, plan_build
 from .catalog import get_catalog
 from .models import BuildConfig
@@ -102,8 +103,8 @@ def resolve_build(build: BuildConfig, scene_manifest: dict[str, Any]) -> Resolve
         display_name=plan.display_name,
         root=expected_root,
         modules=resolved_modules,
-        cosmetics=dict(sorted(build.cosmetics.items())),
-        assembly=dict(sorted(build.assembly.items())),
+        cosmetics=sorted_dict_copy(build.cosmetics),
+        assembly=sorted_dict_copy(build.assembly),
     )
 
 
