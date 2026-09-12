@@ -35,22 +35,34 @@ def _normalize_json_value(value: Any) -> Any:
     return value
 
 
+def _escape_surrogate_code_units(text: str) -> str:
+    """Escape raw UTF-16 surrogate code units without rewriting real astral scalars."""
+    return "".join(
+        f"\\u{ord(character):04x}"
+        if 0xD800 <= ord(character) <= 0xDFFF
+        else character
+        for character in text
+    )
+
+
 def canonical_json_bytes(payload: Any) -> bytes:
     """Serialize JSON-compatible data deterministically for hashing.
 
     The representation is intentionally compact and independent of pretty-printing,
     dictionary insertion order, equivalent Python numeric spellings, and host Unicode
-    encoding behavior. Non-ASCII code points are escaped so lone surrogates accepted
-    by JSON loaders remain representable in the canonical UTF-8 byte stream.
+    encoding behavior. Raw surrogate code units are escaped after JSON serialization,
+    keeping the byte stream valid UTF-8 while preserving the distinction between an
+    astral Unicode scalar and an explicitly supplied surrogate pair.
     """
     normalized = _normalize_json_value(payload)
-    return json.dumps(
+    serialized = json.dumps(
         normalized,
         sort_keys=True,
         separators=(",", ":"),
-        ensure_ascii=True,
+        ensure_ascii=False,
         allow_nan=False,
-    ).encode("utf-8")
+    )
+    return _escape_surrogate_code_units(serialized).encode("utf-8")
 
 
 def sha256_digest(payload: Any) -> str:
