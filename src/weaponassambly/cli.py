@@ -9,6 +9,7 @@ from . import __version__
 from .adapters.registry import adapter_names, get_adapter
 from .assembly import STAGE_NAMES, plan_build
 from .catalog import registered_platforms
+from .certification import certification_as_dict, certify_resolved_build
 from .io import load_build
 from .manifest import build_manifest
 from .parametric import ObjectDescriptor, validate_descriptor
@@ -183,6 +184,31 @@ def cmd_resolve(
     return 0
 
 
+def cmd_certify(build_path: str, scene_path: str, output: str | None) -> int:
+    build, code = _load_validated(build_path)
+    if build is None:
+        return code
+
+    try:
+        scene_manifest = load_scene_manifest(scene_path)
+        resolved = resolve_build(build, scene_manifest)
+        data = certification_as_dict(certify_resolved_build(resolved))
+    except (OSError, ValueError) as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
+
+    payload = json.dumps(data, indent=2, sort_keys=True) + "\n"
+    if output is None:
+        print(payload, end="")
+        return 0
+
+    target = Path(output)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(payload, encoding="utf-8")
+    print(f"WROTE: {target}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="bmwa", description="BlackMamba assembly runtime")
     parser.add_argument("--version", action="version", version=__version__)
@@ -221,6 +247,13 @@ def build_parser() -> argparse.ArgumentParser:
     resolve.add_argument("--adapter", choices=adapter_names(), default="generic-json")
     resolve.add_argument("-o", "--output")
 
+    certify = subparsers.add_parser(
+        "certify", help="certify a resolved build with a deterministic SHA-256 digest"
+    )
+    certify.add_argument("build")
+    certify.add_argument("scene")
+    certify.add_argument("-o", "--output")
+
     return parser
 
 
@@ -244,6 +277,8 @@ def main() -> int:
         return cmd_scene_validate(args.path)
     if args.command == "resolve":
         return cmd_resolve(args.build, args.scene, args.adapter, args.output)
+    if args.command == "certify":
+        return cmd_certify(args.build, args.scene, args.output)
 
     parser.error("unknown command")
     return 2
