@@ -16,12 +16,21 @@ def load_json(path: str | Path) -> dict[str, Any]:
     return data
 
 
+REQUIRED_KEYS = ("schema_version", "platform", "modules", "cosmetics")
+
+
 def load_build(path: str | Path) -> BuildConfig:
     data = load_json(path)
-    missing = [
-        key for key in ("schema_version", "platform", "modules", "cosmetics") if key not in data
-    ]
-    if missing:
+    # Fast path: check for required keys directly using short-circuiting boolean operations.
+    # For valid configs (the vast majority of calls), this avoids temporary list creation
+    # and string formatting overhead.
+    if not (
+        "schema_version" in data
+        and "platform" in data
+        and "modules" in data
+        and "cosmetics" in data
+    ):
+        missing = [key for key in REQUIRED_KEYS if key not in data]
         raise ValueError(f"missing required keys: {', '.join(missing)}")
     if not isinstance(data.get("modules"), dict):
         raise ValueError("modules must be a JSON object")
