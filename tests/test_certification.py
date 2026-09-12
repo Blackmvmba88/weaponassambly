@@ -75,6 +75,15 @@ def test_canonical_json_escapes_lone_surrogates() -> None:
     assert len(sha256_digest(payload)) == 64
 
 
+def test_canonical_json_distinguishes_astral_from_surrogate_pair() -> None:
+    astral_payload = {"assembly": {"icon": "\U0001f600"}}
+    surrogate_payload = {"assembly": {"icon": "\ud83d\ude00"}}
+
+    assert astral_payload != surrogate_payload
+    assert canonical_json_bytes(astral_payload) != canonical_json_bytes(surrogate_payload)
+    assert sha256_digest(astral_payload) != sha256_digest(surrogate_payload)
+
+
 def test_certification_is_deterministic() -> None:
     first = certify_resolved_build(make_resolved())
     second = certify_resolved_build(make_resolved())
