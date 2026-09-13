@@ -10,6 +10,7 @@ from .adapters.registry import adapter_names, get_adapter
 from .assembly import STAGE_NAMES, plan_build
 from .catalog import registered_platforms
 from .certification import certification_as_dict, certify_resolved_build
+from .comparison import compare_certificates
 from .io import load_build
 from .manifest import build_manifest
 from .parametric import ObjectDescriptor, validate_descriptor
@@ -209,6 +210,18 @@ def cmd_certify(build_path: str, scene_path: str, output: str | None) -> int:
     return 0
 
 
+def cmd_compare(expected_path: str, actual_path: str) -> int:
+    try:
+        expected = json.loads(Path(expected_path).read_text(encoding="utf-8"))
+        actual = json.loads(Path(actual_path).read_text(encoding="utf-8"))
+        matched, report = compare_certificates(expected, actual)
+    except (OSError, ValueError) as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
+    print(report, end="")
+    return 0 if matched else 1
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="bmwa", description="BlackMamba assembly runtime")
     parser.add_argument("--version", action="version", version=__version__)
@@ -254,6 +267,10 @@ def build_parser() -> argparse.ArgumentParser:
     certify.add_argument("scene")
     certify.add_argument("-o", "--output")
 
+    compare = subparsers.add_parser("compare", help="compare two build certificates")
+    compare.add_argument("expected")
+    compare.add_argument("actual")
+
     return parser
 
 
@@ -277,6 +294,8 @@ def main() -> int:
         return cmd_scene_validate(args.path)
     if args.command == "resolve":
         return cmd_resolve(args.build, args.scene, args.adapter, args.output)
+    if args.command == "compare":
+        return cmd_compare(args.expected, args.actual)
     if args.command == "certify":
         return cmd_certify(args.build, args.scene, args.output)
 

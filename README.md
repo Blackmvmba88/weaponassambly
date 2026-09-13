@@ -354,3 +354,26 @@ También puedes utilizar los targets disponibles en el `Makefile` para ejecutar 
 ## Licencia
 
 MIT.
+
+## TOKYO Phase III — COMPARE
+
+Comparar dos certificados:
+
+```bash
+bmwa certify configs/bm-s7.example.json examples/bm-s7.scene.json -o expected.json
+bmwa certify configs/bm-s7.example.json examples/bm-s7.scene.json -o actual.json
+bmwa compare expected.json actual.json
+```
+
+La salida es `MATCH` (código de salida 0) cuando todos los campos coinciden.
+Si cambia algún campo, devuelve `MISMATCH` (código 1), las versiones y las
+diferencias en orden fijo con valores `expected` y `actual`. Un archivo ausente,
+JSON inválido o certificado mal formado devuelve `ERROR` por stderr (código 2).
+El orden de las claves y el formato del JSON no afectan la comparación.
+
+Se requieren los siete campos del certificado, sin campos adicionales, versiones
+enteras positivas, un conteo de módulos no negativo y un digest hexadecimal de
+64 caracteres en minúsculas. Las versiones se comparan como datos: no se migra
+entre versiones. COMPARE compara declaraciones del certificado; no recalcula el
+build ni verifica autenticidad. Para comprobar un build, certifícalo de nuevo y
+compara el resultado con el certificado guardado.
