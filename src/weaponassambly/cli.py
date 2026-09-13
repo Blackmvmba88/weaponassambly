@@ -222,6 +222,49 @@ def cmd_compare(expected_path: str, actual_path: str) -> int:
     return 0 if matched else 1
 
 
+def cmd_export(
+    build_path: str, scene_path: str, expected_path: str, adapter_name: str, output: str,
+) -> int:
+    try:
+        expected = json.loads(Path(expected_path).read_text(encoding="utf-8"))
+        # Reject malformed reference certificates before resolving the inputs.
+        compare_certificates(expected, expected)
+    except (OSError, ValueError) as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
+
+    build, code = _load_validated(build_path)
+    if build is None:
+        return code
+    try:
+        resolved = resolve_build(build, load_scene_manifest(scene_path))
+        actual = certification_as_dict(certify_resolved_build(resolved))
+        matched, report = compare_certificates(expected, actual)
+        if not matched:
+            print(report, end="")
+            return 1
+        data = {
+            "export_version": 1,
+            "certification": actual,
+            "payload": get_adapter(adapter_name).emit(resolved),
+        }
+        payload = json.dumps(data, indent=2, sort_keys=True, allow_nan=False) + "\n"
+    except (OSError, ValueError) as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
+
+    try:
+        target = Path(output)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(payload, encoding="utf-8")
+    except (OSError, ValueError) as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
+    print(report, end="")
+    print(f"WROTE: {target}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="bmwa", description="BlackMamba assembly runtime")
     parser.add_argument("--version", action="version", version=__version__)
@@ -271,6 +314,13 @@ def build_parser() -> argparse.ArgumentParser:
     compare.add_argument("expected")
     compare.add_argument("actual")
 
+    export = subparsers.add_parser("export", help="export only if a reference certificate matches")
+    export.add_argument("build")
+    export.add_argument("scene")
+    export.add_argument("--expected", required=True)
+    export.add_argument("--adapter", choices=adapter_names(), default="generic-json")
+    export.add_argument("-o", "--output", required=True)
+
     return parser
 
 
@@ -294,6 +344,8 @@ def main() -> int:
         return cmd_scene_validate(args.path)
     if args.command == "resolve":
         return cmd_resolve(args.build, args.scene, args.adapter, args.output)
+    if args.command == "export":
+        return cmd_export(args.build, args.scene, args.expected, args.adapter, args.output)
     if args.command == "compare":
         return cmd_compare(args.expected, args.actual)
     if args.command == "certify":

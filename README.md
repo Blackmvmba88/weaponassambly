@@ -377,3 +377,23 @@ enteras positivas, un conteo de módulos no negativo y un digest hexadecimal de
 entre versiones. COMPARE compara declaraciones del certificado; no recalcula el
 build ni verifica autenticidad. Para comprobar un build, certifícalo de nuevo y
 compara el resultado con el certificado guardado.
+
+## TOKYO — EXPORT con certificado de referencia
+
+```bash
+bmwa certify configs/bm-s7.example.json examples/bm-s7.scene.json -o expected.json
+bmwa export configs/bm-s7.example.json examples/bm-s7.scene.json \
+  --expected expected.json --adapter generic-json -o exports/bm-s7.certified.json
+```
+
+EXPORT resuelve y certifica los inputs actuales, compara todos los campos con el
+certificado de referencia y escribe únicamente cuando obtiene `MATCH`. El archivo
+contiene `export_version: 1`, `certification` y `payload` (la salida del adaptador).
+La salida es determinista para los mismos inputs y adaptador.
+
+Un `MISMATCH` devuelve código 1 y no crea ni modifica el archivo de salida.
+Un certificado de referencia inválido o un error de escritura devuelve código 2;
+los errores de validación o resolución devuelven código 1 (un build ilegible, 2).
+El certificado cubre el build resuelto; no es una firma de autenticidad ni un hash
+del archivo exportado o de los campos añadidos por el adaptador. Conserva una
+referencia previamente aprobada para verificar futuras construcciones.
