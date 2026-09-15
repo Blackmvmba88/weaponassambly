@@ -3,8 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import IntEnum
 
+from .catalog import socket_for_slot
 from .models import BuildConfig
-from .registry import canonical_socket
 from .validator import validate_build
 
 
@@ -64,10 +64,13 @@ def plan_build(build: BuildConfig) -> AssemblyPlan:
     pending.sort()
 
     steps: list[AssemblyStep] = []
+    platform = build.platform
     for index, (stage, slot, module) in enumerate(pending, start=1):
-        socket = canonical_socket(build.platform, slot)
+        # Call socket_for_slot directly to bypass canonical_socket delegation wrapper,
+        # avoiding extra Python function frame overhead in assembly planning hot path.
+        socket = socket_for_slot(platform, slot)
         if socket is None:
-            raise RuntimeError(f"catalog has no canonical socket for {build.platform}:{slot}")
+            raise RuntimeError(f"catalog has no canonical socket for {platform}:{slot}")
         steps.append(
             AssemblyStep(
                 order=index,
