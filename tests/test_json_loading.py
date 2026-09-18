@@ -5,6 +5,7 @@ import json
 import pytest
 
 from weaponassambly.cli import cmd_parametric_validate
+from weaponassambly.io import load_build, load_json
 from weaponassambly.scene import load_scene_manifest
 
 
@@ -36,3 +37,51 @@ def test_parametric_cli_rejects_invalid_json(tmp_path) -> None:
     path.write_text("{invalid_json", encoding="utf-8")
 
     assert cmd_parametric_validate(str(path)) == 2
+
+
+def test_load_build_valid(tmp_path) -> None:
+    payload = {
+        "schema_version": 1,
+        "platform": "BM-S7",
+        "modules": {"top": "MAMBA_RD01"},
+        "cosmetics": {"finish": "polished_black"},
+    }
+    path = tmp_path / "build.json"
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+    build = load_build(path)
+    assert build.schema_version == 1
+    assert build.platform == "BM-S7"
+    assert build.modules == {"top": "MAMBA_RD01"}
+    assert build.cosmetics == {"finish": "polished_black"}
+
+
+def test_load_build_missing_keys(tmp_path) -> None:
+    payload = {"schema_version": 1, "platform": "BM-S7"}
+    path = tmp_path / "build_invalid.json"
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="missing required keys: modules, cosmetics"):
+        load_build(path)
+
+
+def test_load_build_invalid_types(tmp_path) -> None:
+    payload = {
+        "schema_version": 1,
+        "platform": "BM-S7",
+        "modules": "not_a_dict",
+        "cosmetics": {},
+    }
+    path = tmp_path / "build_bad_type.json"
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="modules must be a JSON object"):
+        load_build(path)
+
+
+def test_load_json_non_dict_root(tmp_path) -> None:
+    path = tmp_path / "list.json"
+    path.write_text("[1, 2, 3]", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="build config root must be a JSON object"):
+        load_json(path)
