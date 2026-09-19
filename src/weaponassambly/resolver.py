@@ -91,15 +91,17 @@ def resolve_build(build: BuildConfig, scene_manifest: dict[str, Any]) -> Resolve
     plan = plan_build(build)
     sockets = scene_manifest["sockets"]
     resolved_modules = tuple(
-        ResolvedModule(
-            order=step.order,
-            stage=STAGE_NAMES[step.stage],
-            slot=step.slot,
-            module=step.module,
-            socket=step.socket,
-            transform=_transform_from_scene(sockets, step.socket),
-        )
-        for step in plan.steps
+        [
+            ResolvedModule(
+                order=step.order,
+                stage=STAGE_NAMES[step.stage],
+                slot=step.slot,
+                module=step.module,
+                socket=step.socket,
+                transform=_transform_from_scene(sockets, step.socket),
+            )
+            for step in plan.steps
+        ]
     )
 
     return ResolvedBuild(
