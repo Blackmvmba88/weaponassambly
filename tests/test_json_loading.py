@@ -5,6 +5,7 @@ import json
 import pytest
 
 from weaponassambly.cli import cmd_parametric_validate
+from weaponassambly.io import load_build
 from weaponassambly.scene import load_scene_manifest
 
 
@@ -36,3 +37,58 @@ def test_parametric_cli_rejects_invalid_json(tmp_path) -> None:
     path.write_text("{invalid_json", encoding="utf-8")
 
     assert cmd_parametric_validate(str(path)) == 2
+
+
+def test_load_build_reads_valid_json_object(tmp_path) -> None:
+    payload = {
+        "schema_version": 1,
+        "platform": "BM-S7",
+        "modules": {"top": "MAMBA_RD01"},
+        "cosmetics": {"finish": "polished_black"},
+    }
+    path = tmp_path / "build.json"
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+    build = load_build(path)
+
+    assert build.schema_version == 1
+    assert build.platform == "BM-S7"
+    assert build.modules == {"top": "MAMBA_RD01"}
+    assert build.cosmetics == {"finish": "polished_black"}
+
+
+def test_load_build_preserves_missing_key_order(tmp_path) -> None:
+    payload = {"schema_version": 1, "platform": "BM-S7"}
+    path = tmp_path / "missing.json"
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="missing required keys: modules, cosmetics"):
+        load_build(path)
+
+
+def test_load_build_rejects_non_object_modules(tmp_path) -> None:
+    payload = {
+        "schema_version": 1,
+        "platform": "BM-S7",
+        "modules": ["not", "a", "dict"],
+        "cosmetics": {},
+    }
+    path = tmp_path / "invalid-modules.json"
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="modules must be a JSON object"):
+        load_build(path)
+
+
+def test_load_build_rejects_non_object_cosmetics(tmp_path) -> None:
+    payload = {
+        "schema_version": 1,
+        "platform": "BM-S7",
+        "modules": {},
+        "cosmetics": "not a dict",
+    }
+    path = tmp_path / "invalid-cosmetics.json"
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="cosmetics must be a JSON object"):
+        load_build(path)
