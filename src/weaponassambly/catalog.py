@@ -11,6 +11,7 @@ from .models import Slot
 CATALOG_VERSION = 1
 
 EXPECTED_SLOTS = frozenset(slot.value for slot in Slot)
+EXPECTED_SLOTS_ORDERED = tuple(sorted(EXPECTED_SLOTS))
 
 
 @dataclass(frozen=True, slots=True)
@@ -42,13 +43,16 @@ def validate_catalog(data: dict[str, Any]) -> CatalogValidationResult:
         errors.append("slots must be an object")
         slots = {}
 
-    slot_keys = set(slots)
-    unknown_slots = sorted(slot_keys - EXPECTED_SLOTS)
-    missing_slots = sorted(EXPECTED_SLOTS - slot_keys)
-    for slot in unknown_slots:
-        errors.append(f"unknown slot in catalog: {slot}")
-    for slot in missing_slots:
-        errors.append(f"missing slot in catalog: {slot}")
+    # Fast path: check unknown and missing slots without set allocations or sorting overhead.
+    unknown_slots = [slot for slot in slots if slot not in EXPECTED_SLOTS]
+    if unknown_slots:
+        unknown_slots.sort()
+        for slot in unknown_slots:
+            errors.append(f"unknown slot in catalog: {slot}")
+
+    for slot in EXPECTED_SLOTS_ORDERED:
+        if slot not in slots:
+            errors.append(f"missing slot in catalog: {slot}")
 
     module_ids: set[str] = set()
     for slot, spec in slots.items():
