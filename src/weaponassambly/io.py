@@ -16,6 +16,9 @@ def load_json(path: str | Path) -> dict[str, Any]:
     return data
 
 
+REQUIRED_BUILD_KEYS = ("schema_version", "platform", "modules", "cosmetics")
+
+
 def load_build(path: str | Path) -> BuildConfig:
     data = load_json(path)
     if not isinstance(data, dict):
@@ -32,8 +35,10 @@ def load_build(path: str | Path) -> BuildConfig:
             key for key in ("schema_version", "platform", "modules", "cosmetics") if key not in data
         ]
         raise ValueError(f"missing required keys: {', '.join(missing)}")
-    if not isinstance(data.get("modules"), dict):
+    modules = data["modules"]
+    if not isinstance(modules, dict):
         raise ValueError("modules must be a JSON object")
-    if not isinstance(data.get("cosmetics"), dict):
+    cosmetics = data["cosmetics"]
+    if not isinstance(cosmetics, dict):
         raise ValueError("cosmetics must be a JSON object")
     return BuildConfig.from_mapping(data)
