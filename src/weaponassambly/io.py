@@ -18,10 +18,19 @@ def load_json(path: str | Path) -> dict[str, Any]:
 
 def load_build(path: str | Path) -> BuildConfig:
     data = load_json(path)
-    missing = [
-        key for key in ("schema_version", "platform", "modules", "cosmetics") if key not in data
-    ]
-    if missing:
+    if not isinstance(data, dict):
+        raise ValueError("build config root must be a JSON object")
+    # Fast-path required dict key checks using direct short-circuiting boolean operations
+    # to avoid allocating temporary list comprehensions for valid inputs.
+    if not (
+        "schema_version" in data
+        and "platform" in data
+        and "modules" in data
+        and "cosmetics" in data
+    ):
+        missing = [
+            key for key in ("schema_version", "platform", "modules", "cosmetics") if key not in data
+        ]
         raise ValueError(f"missing required keys: {', '.join(missing)}")
     if not isinstance(data.get("modules"), dict):
         raise ValueError("modules must be a JSON object")
