@@ -39,7 +39,9 @@ def test_parametric_cli_rejects_invalid_json(tmp_path) -> None:
     assert cmd_parametric_validate(str(path)) == 2
 
 
-def test_load_build_valid_file(tmp_path) -> None:
+def test_load_build_valid(tmp_path) -> None:
+    from weaponassambly.io import load_build
+
     payload = {
         "schema_version": 1,
         "platform": "BM-S7",
@@ -56,38 +58,38 @@ def test_load_build_valid_file(tmp_path) -> None:
     assert build.cosmetics == {"finish": "polished_black"}
 
 
-def test_load_build_missing_required_keys(tmp_path) -> None:
+def test_load_build_missing_keys(tmp_path) -> None:
+    from weaponassambly.io import load_build
+
     payload = {"schema_version": 1, "platform": "BM-S7"}
-    path = tmp_path / "invalid_build.json"
+    path = tmp_path / "incomplete_build.json"
     path.write_text(json.dumps(payload), encoding="utf-8")
 
     with pytest.raises(ValueError, match="missing required keys: modules, cosmetics"):
         load_build(path)
 
 
-def test_load_build_invalid_modules_type(tmp_path) -> None:
-    payload = {
-        "schema_version": 1,
-        "platform": "BM-S7",
-        "modules": ["not", "a", "dict"],
-        "cosmetics": {},
-    }
-    path = tmp_path / "invalid_modules.json"
-    path.write_text(json.dumps(payload), encoding="utf-8")
+def test_load_build_non_object_root(tmp_path) -> None:
+    from weaponassambly.io import load_build
 
-    with pytest.raises(ValueError, match="modules must be a JSON object"):
+    path = tmp_path / "list_build.json"
+    path.write_text('["not", "a", "dict"]', encoding="utf-8")
+
+    with pytest.raises(ValueError, match="build config root must be a JSON object"):
         load_build(path)
 
 
-def test_load_build_invalid_cosmetics_type(tmp_path) -> None:
+def test_load_build_invalid_modules_or_cosmetics(tmp_path) -> None:
+    from weaponassambly.io import load_build
+
     payload = {
         "schema_version": 1,
         "platform": "BM-S7",
-        "modules": {},
-        "cosmetics": "not a dict",
+        "modules": "not_a_dict",
+        "cosmetics": {},
     }
-    path = tmp_path / "invalid_cosmetics.json"
+    path = tmp_path / "bad_modules.json"
     path.write_text(json.dumps(payload), encoding="utf-8")
 
-    with pytest.raises(ValueError, match="cosmetics must be a JSON object"):
+    with pytest.raises(ValueError, match="modules must be a JSON object"):
         load_build(path)
