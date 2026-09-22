@@ -21,19 +21,24 @@ REQUIRED_BUILD_KEYS = ("schema_version", "platform", "modules", "cosmetics")
 
 def load_build(path: str | Path) -> BuildConfig:
     data = load_json(path)
-    # Fast-path check: avoid constructing list comprehension for missing keys
-    # on valid inputs (~1.7x speedup).
+    if not isinstance(data, dict):
+        raise ValueError("build config root must be a JSON object")
+    # Fast-path required dict key checks using direct short-circuiting boolean operations
+    # to avoid allocating temporary list comprehensions for valid inputs.
     if not (
         "schema_version" in data
         and "platform" in data
         and "modules" in data
         and "cosmetics" in data
     ):
-        missing = [key for key in REQUIRED_BUILD_KEYS if key not in data]
-        if missing:
-            raise ValueError(f"missing required keys: {', '.join(missing)}")
-    if not isinstance(data.get("modules"), dict):
+        missing = [
+            key for key in ("schema_version", "platform", "modules", "cosmetics") if key not in data
+        ]
+        raise ValueError(f"missing required keys: {', '.join(missing)}")
+    modules = data["modules"]
+    if not isinstance(modules, dict):
         raise ValueError("modules must be a JSON object")
-    if not isinstance(data.get("cosmetics"), dict):
+    cosmetics = data["cosmetics"]
+    if not isinstance(cosmetics, dict):
         raise ValueError("cosmetics must be a JSON object")
     return BuildConfig.from_mapping(data)
