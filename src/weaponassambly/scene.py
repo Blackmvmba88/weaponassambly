@@ -24,6 +24,11 @@ class SceneValidationResult:
     errors: tuple[str, ...]
 
 
+# Caching a singleton result for valid scene manifest checks avoids redundant
+# dataclass allocation and empty tuple creation on every successful validation pass.
+OK_SCENE_VALIDATION_RESULT = SceneValidationResult(ok=True, errors=())
+
+
 def load_scene_manifest(path: str | Path) -> dict[str, Any]:
     file_path = Path(path)
     with file_path.open(encoding="utf-8") as handle:
@@ -120,4 +125,6 @@ def validate_scene_manifest(data: dict[str, Any]) -> SceneValidationResult:
                 errors.append("collections must be a list of strings")
                 break
 
-    return SceneValidationResult(ok=not errors, errors=tuple(errors))
+    if not errors:
+        return OK_SCENE_VALIDATION_RESULT
+    return SceneValidationResult(ok=False, errors=tuple(errors))
