@@ -17,15 +17,21 @@ class ObjectDescriptor:
 
     @classmethod
     def from_mapping(cls, data: dict[str, Any]) -> ObjectDescriptor:
+        parameters = data.get("parameters")
+        connectors = data.get("connectors")
+        materials = data.get("materials")
+        modifiers = data.get("modifiers")
+        metadata = data.get("metadata")
+        # Avoid eager default tuple/dict creation and copy overhead when missing or empty.
         return cls(
             id=str(data.get("id", "")),
             family=str(data.get("family", "")),
             semantic=str(data.get("semantic", "generic")),
-            parameters=dict(data.get("parameters", {})),
-            connectors=tuple(data.get("connectors", ())),
-            materials=tuple(data.get("materials", ())),
-            modifiers=tuple(data.get("modifiers", ())),
-            metadata=dict(data.get("metadata", {})),
+            parameters=dict(parameters) if parameters else {},
+            connectors=tuple(connectors) if connectors else (),
+            materials=tuple(materials) if materials else (),
+            modifiers=tuple(modifiers) if modifiers else (),
+            metadata=dict(metadata) if metadata else {},
         )
 
 

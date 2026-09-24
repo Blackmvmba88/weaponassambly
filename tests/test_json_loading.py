@@ -5,7 +5,6 @@ import json
 import pytest
 
 from weaponassambly.cli import cmd_parametric_validate
-from weaponassambly.io import load_build
 from weaponassambly.scene import load_scene_manifest
 
 
