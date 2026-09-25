@@ -14,6 +14,11 @@ class ValidationResult:
     errors: tuple[str, ...]
 
 
+# Caching a singleton result for valid build validation checks avoids redundant
+# dataclass allocation and empty tuple creation on every successful validation pass.
+OK_BUILD_VALIDATION_RESULT = ValidationResult(ok=True, errors=())
+
+
 def validate_build(build: BuildConfig) -> ValidationResult:
     errors: list[str] = []
 
@@ -52,4 +57,6 @@ def validate_build(build: BuildConfig) -> ValidationResult:
         if platform_ok and not cosmetic_allowed(kind, value, platform):
             errors.append(f"cosmetic {kind}={value!r} is not registered for {platform}")
 
-    return ValidationResult(ok=not errors, errors=tuple(errors))
+    if not errors:
+        return OK_BUILD_VALIDATION_RESULT
+    return ValidationResult(ok=False, errors=tuple(errors))
