@@ -354,3 +354,46 @@ También puedes utilizar los targets disponibles en el `Makefile` para ejecutar 
 ## Licencia
 
 MIT.
+
+## TOKYO Phase III — COMPARE
+
+Comparar dos certificados:
+
+```bash
+bmwa certify configs/bm-s7.example.json examples/bm-s7.scene.json -o expected.json
+bmwa certify configs/bm-s7.example.json examples/bm-s7.scene.json -o actual.json
+bmwa compare expected.json actual.json
+```
+
+La salida es `MATCH` (código de salida 0) cuando todos los campos coinciden.
+Si cambia algún campo, devuelve `MISMATCH` (código 1), las versiones y las
+diferencias en orden fijo con valores `expected` y `actual`. Un archivo ausente,
+JSON inválido o certificado mal formado devuelve `ERROR` por stderr (código 2).
+El orden de las claves y el formato del JSON no afectan la comparación.
+
+Se requieren los siete campos del certificado, sin campos adicionales, versiones
+enteras positivas, un conteo de módulos no negativo y un digest hexadecimal de
+64 caracteres en minúsculas. Las versiones se comparan como datos: no se migra
+entre versiones. COMPARE compara declaraciones del certificado; no recalcula el
+build ni verifica autenticidad. Para comprobar un build, certifícalo de nuevo y
+compara el resultado con el certificado guardado.
+
+## TOKYO — EXPORT con certificado de referencia
+
+```bash
+bmwa certify configs/bm-s7.example.json examples/bm-s7.scene.json -o expected.json
+bmwa export configs/bm-s7.example.json examples/bm-s7.scene.json \
+  --expected expected.json --adapter generic-json -o exports/bm-s7.certified.json
+```
+
+EXPORT resuelve y certifica los inputs actuales, compara todos los campos con el
+certificado de referencia y escribe únicamente cuando obtiene `MATCH`. El archivo
+contiene `export_version: 1`, `certification` y `payload` (la salida del adaptador).
+La salida es determinista para los mismos inputs y adaptador.
+
+Un `MISMATCH` devuelve código 1 y no crea ni modifica el archivo de salida.
+Un certificado de referencia inválido o un error de escritura devuelve código 2;
+los errores de validación o resolución devuelven código 1 (un build ilegible, 2).
+El certificado cubre el build resuelto; no es una firma de autenticidad ni un hash
+del archivo exportado o de los campos añadidos por el adaptador. Conserva una
+referencia previamente aprobada para verificar futuras construcciones.
