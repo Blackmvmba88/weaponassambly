@@ -57,7 +57,8 @@ def test_catalog_validator_preserves_slot_error_order():
     slot_errors = [
         error
         for error in result.errors
-        if error.startswith("unknown slot in catalog:") or error.startswith("missing slot in catalog:")
+        if error.startswith("unknown slot in catalog:")
+        or error.startswith("missing slot in catalog:")
     ]
 
     assert slot_errors == [

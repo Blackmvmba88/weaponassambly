@@ -23,11 +23,15 @@ class BuildConfig:
 
     @classmethod
     def from_mapping(cls, data: dict[str, Any]) -> BuildConfig:
+        modules = data.get("modules")
+        cosmetics = data.get("cosmetics")
+        assembly = data.get("assembly")
+        # Avoid eager empty dict default evaluation and dict({}) calls for missing fields.
         return cls(
             schema_version=int(data.get("schema_version", 1)),
             platform=str(data.get("platform", "")),
             display_name=data.get("display_name"),
-            modules=dict(data.get("modules", {})),
-            cosmetics=dict(data.get("cosmetics", {})),
-            assembly=dict(data.get("assembly", {})),
+            modules=dict(modules) if modules else {},
+            cosmetics=dict(cosmetics) if cosmetics else {},
+            assembly=dict(assembly) if assembly else {},
         )

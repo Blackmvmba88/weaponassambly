@@ -90,22 +90,19 @@ def resolve_build(build: BuildConfig, scene_manifest: dict[str, Any]) -> Resolve
 
     plan = plan_build(build)
     sockets = scene_manifest["sockets"]
-
-    # Passing a list comprehension to tuple() avoids generator overhead and
-    # function call stack allocation, giving ~7% speedup in hot assembly resolution loops.
-    resolved_modules = tuple(
-        [
-            ResolvedModule(
-                order=step.order,
-                stage=STAGE_NAMES[step.stage],
-                slot=step.slot,
-                module=step.module,
-                socket=step.socket,
-                transform=_transform_from_scene(sockets, step.socket),
-            )
-            for step in plan.steps
-        ]
-    )
+    # Passing a list comprehension to tuple() avoids generator frame creation
+    # and iterator protocol overhead in hot build resolution loop.
+    resolved_modules = tuple([
+        ResolvedModule(
+            order=step.order,
+            stage=STAGE_NAMES[step.stage],
+            slot=step.slot,
+            module=step.module,
+            socket=step.socket,
+            transform=_transform_from_scene(sockets, step.socket),
+        )
+        for step in plan.steps
+    ])
 
     return ResolvedBuild(
         resolver_version=RESOLVER_VERSION,
