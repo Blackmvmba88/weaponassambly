@@ -124,6 +124,8 @@ def validate_scene_manifest(data: dict[str, Any]) -> SceneValidationResult:
             elif invalid_scale:
                 errors.append(f"socket {socket_name} scale must be 1,1,1")
 
+
+def _validate_collections(data: dict[str, Any], errors: list[str]) -> None:
     collections = data.get("collections")
     if not isinstance(collections, list):
         errors.append("collections must be a list of strings")
