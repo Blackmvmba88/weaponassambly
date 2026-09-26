@@ -14,6 +14,11 @@ class ValidationResult:
     errors: tuple[str, ...]
 
 
+# Singleton instance for successful build validations avoids repeated dataclass
+# instantiation and empty tuple allocation on every valid build check.
+OK_BUILD_VALIDATION_RESULT = ValidationResult(ok=True, errors=())
+
+
 def validate_build(build: BuildConfig) -> ValidationResult:
     errors: list[str] = []
 
@@ -26,6 +31,9 @@ def validate_build(build: BuildConfig) -> ValidationResult:
         errors.append("platform is required")
     elif not platform_ok:
         errors.append(f"unknown platform: {platform}")
+
+    if build.display_name is not None and not isinstance(build.display_name, str):
+        errors.append("display_name must be a string or null")
 
     for slot, module in build.modules.items():
         if slot not in VALID_SLOTS:
@@ -52,4 +60,6 @@ def validate_build(build: BuildConfig) -> ValidationResult:
         if platform_ok and not cosmetic_allowed(kind, value, platform):
             errors.append(f"cosmetic {kind}={value!r} is not registered for {platform}")
 
-    return ValidationResult(ok=not errors, errors=tuple(errors))
+    if not errors:
+        return OK_BUILD_VALIDATION_RESULT
+    return ValidationResult(ok=False, errors=tuple(errors))
