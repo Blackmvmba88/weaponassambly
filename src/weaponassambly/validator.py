@@ -27,6 +27,9 @@ def validate_build(build: BuildConfig) -> ValidationResult:
     elif not platform_ok:
         errors.append(f"unknown platform: {platform}")
 
+    if build.display_name is not None and not isinstance(build.display_name, str):
+        errors.append("display_name must be a string or null")
+
     for slot, module in build.modules.items():
         if slot not in VALID_SLOTS:
             errors.append(f"unknown module slot: {slot}")
