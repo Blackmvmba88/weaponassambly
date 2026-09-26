@@ -17,15 +17,21 @@ class ObjectDescriptor:
 
     @classmethod
     def from_mapping(cls, data: dict[str, Any]) -> ObjectDescriptor:
+        parameters = data.get("parameters")
+        connectors = data.get("connectors")
+        materials = data.get("materials")
+        modifiers = data.get("modifiers")
+        metadata = data.get("metadata")
+        # Avoid eager empty default dict/tuple evaluations and conversion calls for missing fields.
         return cls(
             id=str(data.get("id", "")),
             family=str(data.get("family", "")),
             semantic=str(data.get("semantic", "generic")),
-            parameters=dict(data.get("parameters", {})),
-            connectors=tuple(data.get("connectors", ())),
-            materials=tuple(data.get("materials", ())),
-            modifiers=tuple(data.get("modifiers", ())),
-            metadata=dict(data.get("metadata", {})),
+            parameters=dict(parameters) if parameters else {},
+            connectors=tuple(connectors) if connectors else (),
+            materials=tuple(materials) if materials else (),
+            modifiers=tuple(modifiers) if modifiers else (),
+            metadata=dict(metadata) if metadata else {},
         )
 
 
@@ -33,6 +39,11 @@ class ObjectDescriptor:
 class ParametricValidationResult:
     ok: bool
     errors: tuple[str, ...]
+
+
+# Singleton instance for successful parametric validations avoids repeated dataclass
+# instantiation and empty tuple allocation on every valid object descriptor check.
+OK_PARAMETRIC_VALIDATION_RESULT = ParametricValidationResult(ok=True, errors=())
 
 
 def _number(value: object) -> bool:
@@ -68,7 +79,9 @@ def validate_descriptor(descriptor: ObjectDescriptor) -> ParametricValidationRes
     else:
         errors.append(f"unsupported family: {descriptor.family}")
 
-    return ParametricValidationResult(ok=not errors, errors=tuple(errors))
+    if not errors:
+        return OK_PARAMETRIC_VALIDATION_RESULT
+    return ParametricValidationResult(ok=False, errors=tuple(errors))
 
 
 def _validate_axial_body(parameters: dict[str, object]) -> list[str]:
