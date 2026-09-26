@@ -11,12 +11,18 @@ from .models import Slot
 CATALOG_VERSION = 1
 
 EXPECTED_SLOTS = frozenset(slot.value for slot in Slot)
+EXPECTED_SLOTS_ORDERED = tuple(sorted(EXPECTED_SLOTS))
 
 
 @dataclass(frozen=True, slots=True)
 class CatalogValidationResult:
     ok: bool
     errors: tuple[str, ...]
+
+
+# Singleton instance for successful catalog validations avoids repeated dataclass
+# instantiation and empty tuple allocation on every valid catalog check.
+OK_CATALOG_VALIDATION_RESULT = CatalogValidationResult(ok=True, errors=())
 
 
 def validate_catalog(data: dict[str, Any]) -> CatalogValidationResult:
@@ -37,17 +43,22 @@ def validate_catalog(data: dict[str, Any]) -> CatalogValidationResult:
     if not isinstance(root, str) or not root:
         errors.append("root must be a non-empty string")
 
-    slots = data.get("slots")
+
+def _validate_slots(slots: Any, errors: list[str]) -> None:
     if not isinstance(slots, dict):
         errors.append("slots must be an object")
         slots = {}
 
-    unknown_slots = sorted(set(slots) - EXPECTED_SLOTS)
-    missing_slots = sorted(EXPECTED_SLOTS - set(slots))
-    for slot in unknown_slots:
-        errors.append(f"unknown slot in catalog: {slot}")
-    for slot in missing_slots:
-        errors.append(f"missing slot in catalog: {slot}")
+    # Fast path: check unknown and missing slots without set allocations or sorting overhead.
+    unknown_slots = [slot for slot in slots if slot not in EXPECTED_SLOTS]
+    if unknown_slots:
+        unknown_slots.sort()
+        for slot in unknown_slots:
+            errors.append(f"unknown slot in catalog: {slot}")
+
+    for slot in EXPECTED_SLOTS_ORDERED:
+        if slot not in slots:
+            errors.append(f"missing slot in catalog: {slot}")
 
     module_ids: set[str] = set()
     for slot, spec in slots.items():
@@ -65,9 +76,16 @@ def validate_catalog(data: dict[str, Any]) -> CatalogValidationResult:
         if not isinstance(modules, list):
             errors.append(f"slot {slot}.modules must be a list")
             continue
-        if not all(isinstance(module, str) and module for module in modules):
+
+        has_invalid_module = False
+        for module in modules:
+            if not isinstance(module, str) or not module:
+                has_invalid_module = True
+                break
+        if has_invalid_module:
             errors.append(f"slot {slot}.modules must contain non-empty strings")
             continue
+
         if len(modules) != len(set(modules)):
             errors.append(f"slot {slot}.modules contains duplicate IDs")
 
@@ -76,10 +94,11 @@ def validate_catalog(data: dict[str, Any]) -> CatalogValidationResult:
                 errors.append(f"module ID registered more than once: {module}")
             module_ids.add(module)
 
-    cosmetics = data.get("cosmetics")
+
+def _validate_cosmetics(cosmetics: Any, errors: list[str]) -> None:
     if not isinstance(cosmetics, dict):
         errors.append("cosmetics must be an object")
-        cosmetics = {}
+        return
 
     for kind, values in cosmetics.items():
         if not isinstance(kind, str) or not kind:
@@ -88,13 +107,22 @@ def validate_catalog(data: dict[str, Any]) -> CatalogValidationResult:
         if not isinstance(values, list):
             errors.append(f"cosmetic {kind} must be a list")
             continue
-        if not all(isinstance(value, str) and value for value in values):
+
+        has_invalid_value = False
+        for value in values:
+            if not isinstance(value, str) or not value:
+                has_invalid_value = True
+                break
+        if has_invalid_value:
             errors.append(f"cosmetic {kind} must contain non-empty strings")
             continue
+
         if len(values) != len(set(values)):
             errors.append(f"cosmetic {kind} contains duplicate values")
 
-    return CatalogValidationResult(ok=not errors, errors=tuple(errors))
+    if not errors:
+        return OK_CATALOG_VALIDATION_RESULT
+    return CatalogValidationResult(ok=False, errors=tuple(errors))
 
 
 def _catalog_resources():

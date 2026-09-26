@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from ._mapping import sorted_dict_copy
 from .assembly import STAGE_NAMES, plan_build
 from .models import BuildConfig
 
@@ -28,8 +29,8 @@ def build_manifest(build: BuildConfig) -> dict[str, Any]:
             }
             for step in plan.steps
         ],
-        "cosmetics": dict(sorted(build.cosmetics.items())),
-        "assembly": dict(sorted(build.assembly.items())),
+        "cosmetics": sorted_dict_copy(build.cosmetics),
+        "assembly": sorted_dict_copy(build.assembly),
     }
 
 

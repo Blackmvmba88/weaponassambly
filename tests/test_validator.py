@@ -37,6 +37,17 @@ def test_unknown_platform_is_rejected() -> None:
     assert "unknown platform: NOPE" in result.errors
 
 
+def test_non_string_display_name_is_rejected() -> None:
+    build = BuildConfig.from_mapping(
+        {"schema_version": 1, "platform": "BM-S7", "display_name": {"unexpected": "object"}}
+    )
+
+    result = validate_build(build)
+
+    assert result.ok is False
+    assert "display_name must be a string or null" in result.errors
+
+
 def test_unknown_slot_is_rejected() -> None:
     build = BuildConfig.from_mapping(
         {

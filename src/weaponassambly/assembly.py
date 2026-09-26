@@ -29,9 +29,6 @@ SLOT_TO_STAGE: dict[str, AssemblyStage] = {
     "mag": AssemblyStage.MAG,
 }
 
-# Precomputed lowercased stage names to avoid repeated string allocation and dynamic Enum reflection
-STAGE_NAMES: dict[AssemblyStage, str] = {stage: stage.name.lower() for stage in AssemblyStage}
-
 
 @dataclass(frozen=True, slots=True)
 class AssemblyStep:
