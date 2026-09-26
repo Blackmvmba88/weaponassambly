@@ -20,8 +20,8 @@ class CatalogValidationResult:
     errors: tuple[str, ...]
 
 
-# Caching a singleton result for valid catalog validation checks avoids redundant
-# dataclass allocation and empty tuple creation on every successful validation pass.
+# Singleton instance for successful catalog validations avoids repeated dataclass
+# instantiation and empty tuple allocation on every valid catalog check.
 OK_CATALOG_VALIDATION_RESULT = CatalogValidationResult(ok=True, errors=())
 
 
