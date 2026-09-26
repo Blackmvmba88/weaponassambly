@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from ._mapping import sorted_dict_copy
 from .assembly import STAGE_NAMES, plan_build
 from .catalog import get_catalog
 from .models import BuildConfig
@@ -39,22 +40,26 @@ class ResolvedBuild:
     assembly: dict[str, Any]
 
 
-def _vec3(value: object, field: str) -> tuple[float, float, float]:
+def _vec3(value: object, socket: str, field: str) -> tuple[float, float, float]:
     if not isinstance(value, list) or len(value) != 3:
-        raise ValueError(f"{field} must contain exactly 3 numbers")
+        raise ValueError(f"{socket}.{field} must contain exactly 3 numbers")
+
+    v0, v1, v2 = value
+    if type(v0) is float and type(v1) is float and type(v2) is float:
+        return (v0, v1, v2)
+
     try:
-        return (float(value[0]), float(value[1]), float(value[2]))
+        return (float(v0), float(v1), float(v2))
     except (TypeError, ValueError) as exc:
-        raise ValueError(f"{field} must contain exactly 3 numbers") from exc
+        raise ValueError(f"{socket}.{field} must contain exactly 3 numbers") from exc
 
 
-def _transform_from_scene(socket: str, scene_manifest: dict[str, Any]) -> Transform:
-    sockets = scene_manifest["sockets"]
+def _transform_from_scene(sockets: dict[str, Any], socket: str) -> Transform:
     transform = sockets[socket]
     return Transform(
-        location=_vec3(transform["location"], f"{socket}.location"),
-        rotation_euler=_vec3(transform["rotation_euler"], f"{socket}.rotation_euler"),
-        scale=_vec3(transform["scale"], f"{socket}.scale"),
+        location=_vec3(transform["location"], socket, "location"),
+        rotation_euler=_vec3(transform["rotation_euler"], socket, "rotation_euler"),
+        scale=_vec3(transform["scale"], socket, "scale"),
     )
 
 
@@ -70,31 +75,34 @@ def resolve_build(build: BuildConfig, scene_manifest: dict[str, Any]) -> Resolve
     if not scene_result.ok:
         raise ValueError(f"invalid scene: {'; '.join(scene_result.errors)}")
 
-    if scene_manifest["platform"] != build.platform:
-        raise ValueError(
-            f"platform mismatch: build={build.platform} scene={scene_manifest['platform']}"
-        )
+    scene_platform = scene_manifest["platform"]
+    if scene_platform != build.platform:
+        raise ValueError(f"platform mismatch: build={build.platform} scene={scene_platform}")
 
     catalog = get_catalog(build.platform)
     if catalog is None:
         raise ValueError(f"unknown platform catalog: {build.platform}")
 
     expected_root = str(catalog["root"])
-    if scene_manifest["root"] != expected_root:
-        raise ValueError(f"root mismatch: catalog={expected_root} scene={scene_manifest['root']}")
+    scene_root = scene_manifest["root"]
+    if scene_root != expected_root:
+        raise ValueError(f"root mismatch: catalog={expected_root} scene={scene_root}")
 
     plan = plan_build(build)
-    resolved_modules = tuple(
+    sockets = scene_manifest["sockets"]
+    # Passing a list comprehension to tuple() avoids generator frame creation
+    # and iterator protocol overhead in hot build resolution loop.
+    resolved_modules = tuple([
         ResolvedModule(
             order=step.order,
             stage=STAGE_NAMES[step.stage],
             slot=step.slot,
             module=step.module,
             socket=step.socket,
-            transform=_transform_from_scene(step.socket, scene_manifest),
+            transform=_transform_from_scene(sockets, step.socket),
         )
         for step in plan.steps
-    )
+    ])
 
     return ResolvedBuild(
         resolver_version=RESOLVER_VERSION,
@@ -102,8 +110,8 @@ def resolve_build(build: BuildConfig, scene_manifest: dict[str, Any]) -> Resolve
         display_name=plan.display_name,
         root=expected_root,
         modules=resolved_modules,
-        cosmetics=dict(sorted(build.cosmetics.items())),
-        assembly=dict(sorted(build.assembly.items())),
+        cosmetics=sorted_dict_copy(build.cosmetics),
+        assembly=sorted_dict_copy(build.assembly),
     )
 
 
