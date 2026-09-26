@@ -22,6 +22,7 @@ class ObjectDescriptor:
         materials = data.get("materials")
         modifiers = data.get("modifiers")
         metadata = data.get("metadata")
+        # Avoid eager empty default dict/tuple evaluations and conversion calls for missing fields.
         return cls(
             id=str(data.get("id", "")),
             family=str(data.get("family", "")),
@@ -40,8 +41,8 @@ class ParametricValidationResult:
     errors: tuple[str, ...]
 
 
-# Caching a singleton result for valid parametric object descriptor checks avoids
-# redundant dataclass allocation and empty tuple creation on every successful validation pass.
+# Singleton instance for successful parametric validations avoids repeated dataclass
+# instantiation and empty tuple allocation on every valid object descriptor check.
 OK_PARAMETRIC_VALIDATION_RESULT = ParametricValidationResult(ok=True, errors=())
 
 

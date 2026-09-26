@@ -14,8 +14,8 @@ class ValidationResult:
     errors: tuple[str, ...]
 
 
-# Caching a singleton result for valid build config checks avoids redundant
-# dataclass allocation and empty tuple creation on every successful validation pass.
+# Singleton instance for successful build validations avoids repeated dataclass
+# instantiation and empty tuple allocation on every valid build check.
 OK_BUILD_VALIDATION_RESULT = ValidationResult(ok=True, errors=())
 
 
@@ -31,6 +31,9 @@ def validate_build(build: BuildConfig) -> ValidationResult:
         errors.append("platform is required")
     elif not platform_ok:
         errors.append(f"unknown platform: {platform}")
+
+    if build.display_name is not None and not isinstance(build.display_name, str):
+        errors.append("display_name must be a string or null")
 
     for slot, module in build.modules.items():
         if slot not in VALID_SLOTS:

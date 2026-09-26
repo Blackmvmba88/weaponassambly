@@ -75,18 +75,18 @@ def resolve_build(build: BuildConfig, scene_manifest: dict[str, Any]) -> Resolve
     if not scene_result.ok:
         raise ValueError(f"invalid scene: {'; '.join(scene_result.errors)}")
 
-    if scene_manifest["platform"] != build.platform:
-        raise ValueError(
-            f"platform mismatch: build={build.platform} scene={scene_manifest['platform']}"
-        )
+    scene_platform = scene_manifest["platform"]
+    if scene_platform != build.platform:
+        raise ValueError(f"platform mismatch: build={build.platform} scene={scene_platform}")
 
     catalog = get_catalog(build.platform)
     if catalog is None:
         raise ValueError(f"unknown platform catalog: {build.platform}")
 
     expected_root = str(catalog["root"])
-    if scene_manifest["root"] != expected_root:
-        raise ValueError(f"root mismatch: catalog={expected_root} scene={scene_manifest['root']}")
+    scene_root = scene_manifest["root"]
+    if scene_root != expected_root:
+        raise ValueError(f"root mismatch: catalog={expected_root} scene={scene_root}")
 
     plan = plan_build(build)
     sockets = scene_manifest["sockets"]

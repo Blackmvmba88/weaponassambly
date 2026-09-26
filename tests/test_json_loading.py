@@ -5,7 +5,6 @@ import json
 import pytest
 
 from weaponassambly.cli import cmd_parametric_validate
-from weaponassambly.io import load_build
 from weaponassambly.scene import load_scene_manifest
 
 
@@ -40,7 +39,6 @@ def test_parametric_cli_rejects_invalid_json(tmp_path) -> None:
 
 
 def test_load_build_valid(tmp_path) -> None:
-
     payload = {
         "schema_version": 1,
         "platform": "BM-S7",
@@ -58,7 +56,6 @@ def test_load_build_valid(tmp_path) -> None:
 
 
 def test_load_build_missing_keys(tmp_path) -> None:
-
     payload = {"schema_version": 1, "platform": "BM-S7"}
     path = tmp_path / "incomplete_build.json"
     path.write_text(json.dumps(payload), encoding="utf-8")
@@ -68,7 +65,6 @@ def test_load_build_missing_keys(tmp_path) -> None:
 
 
 def test_load_build_non_object_root(tmp_path) -> None:
-
     path = tmp_path / "list_build.json"
     path.write_text('["not", "a", "dict"]', encoding="utf-8")
 
@@ -77,7 +73,6 @@ def test_load_build_non_object_root(tmp_path) -> None:
 
 
 def test_load_build_invalid_modules_or_cosmetics(tmp_path) -> None:
-
     payload = {
         "schema_version": 1,
         "platform": "BM-S7",
