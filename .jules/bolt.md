@@ -29,3 +29,11 @@ This is Bolt's journal for tracking critical learnings about performance optimiz
 ## 2025-05-20 - Unrolling Fixed Vectors vs Code Readability & Maintainability
 **Learning:** Unrolling vector component indexing and replacing `isinstance` check loops with explicit manual element variables (`c0, c1, c2`, `type(c) is float`) yields micro-benchmark gains in Python validation loops, but significantly reduces code readability, increases brittleness, and violates Bolt's principle against sacrificing code readability for micro-optimizations. When existing optimizations have already eliminated major bottlenecks in a module, micro-optimizing clean validation code at the cost of clarity is an anti-pattern.
 **Action:** Do not sacrifice clean loop constructs or idiomatic type checks for unrolled variable micro-optimizations in validation routines unless there is a major bottleneck that cannot be solved cleanly.
+
+## 2025-05-21 - Direct Function Aliasing for Pass-Through Wrapper Functions
+**Learning:** Pass-through wrapper functions that merely forward arguments to another function (e.g., `def canonical_socket(platform, slot): return socket_for_slot(platform, slot)`) introduce unnecessary Python call frame creation overhead. Direct function assignment (`canonical_socket = socket_for_slot`) eliminates the stack frame allocation on every invocation (~1.24x speedup) while preserving complete API compatibility, type signature, and docstrings.
+**Action:** Use direct function assignment instead of pass-through wrapper functions when exposing utility lookups across module boundaries.
+
+## 2025-05-22 - Branch Separation for Special-Case Vector Validation Loops
+**Learning:** In hot validation routines processing lists of fixed-length vectors (such as 3D transforms), placing field-dependent condition checks (e.g., `if field == "scale"`) inside the inner vector component loop evaluates branch conditions redundantly across all vector components. Separating non-specialized vector fields (`location`, `rotation_euler`) from special-case vector fields (`scale`) into separate loop branches eliminates per-component condition evaluation overhead while maintaining clear code structure (~1.31x speedup).
+**Action:** Separate special-case vector validation loops from standard component type checks when validating lists of vectors in hot path validators.
