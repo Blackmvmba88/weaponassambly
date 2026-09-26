@@ -50,11 +50,11 @@ def validate_scene_manifest(data: dict[str, Any]) -> SceneValidationResult:
         errors.append("sockets must be an object")
         sockets = {}
 
-    # Scan a pre-sorted fixed tuple to avoid allocating a set difference and sorting it
-    # on every validation while preserving the validator's existing error order.
-    missing = [socket for socket in REQUIRED_SOCKETS_ORDERED if socket not in sockets]
-    for socket in missing:
-        errors.append(f"missing socket: {socket}")
+    # Iterate pre-sorted fixed tuple directly to check missing sockets without allocating
+    # a temporary list or set difference while preserving existing error order.
+    for socket in REQUIRED_SOCKETS_ORDERED:
+        if socket not in sockets:
+            errors.append(f"missing socket: {socket}")
 
     for socket_name, transform in sockets.items():
         if socket_name not in REQUIRED_SOCKETS:
