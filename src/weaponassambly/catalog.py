@@ -43,7 +43,8 @@ def validate_catalog(data: dict[str, Any]) -> CatalogValidationResult:
     if not isinstance(root, str) or not root:
         errors.append("root must be a non-empty string")
 
-    slots = data.get("slots")
+
+def _validate_slots(slots: Any, errors: list[str]) -> None:
     if not isinstance(slots, dict):
         errors.append("slots must be an object")
         slots = {}
@@ -93,10 +94,11 @@ def validate_catalog(data: dict[str, Any]) -> CatalogValidationResult:
                 errors.append(f"module ID registered more than once: {module}")
             module_ids.add(module)
 
-    cosmetics = data.get("cosmetics")
+
+def _validate_cosmetics(cosmetics: Any, errors: list[str]) -> None:
     if not isinstance(cosmetics, dict):
         errors.append("cosmetics must be an object")
-        cosmetics = {}
+        return
 
     for kind, values in cosmetics.items():
         if not isinstance(kind, str) or not kind:
