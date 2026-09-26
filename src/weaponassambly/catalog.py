@@ -20,6 +20,11 @@ class CatalogValidationResult:
     errors: tuple[str, ...]
 
 
+# Singleton instance for successful catalog validations avoids repeated dataclass
+# instantiation and empty tuple allocation on every valid catalog check.
+OK_CATALOG_VALIDATION_RESULT = CatalogValidationResult(ok=True, errors=())
+
+
 def validate_catalog(data: dict[str, Any]) -> CatalogValidationResult:
     errors: list[str] = []
 
@@ -113,7 +118,9 @@ def validate_catalog(data: dict[str, Any]) -> CatalogValidationResult:
         if len(values) != len(set(values)):
             errors.append(f"cosmetic {kind} contains duplicate values")
 
-    return CatalogValidationResult(ok=not errors, errors=tuple(errors))
+    if not errors:
+        return OK_CATALOG_VALIDATION_RESULT
+    return CatalogValidationResult(ok=False, errors=tuple(errors))
 
 
 def _catalog_resources():
