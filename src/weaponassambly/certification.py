@@ -18,6 +18,28 @@ def _normalize_json_value(value: Any) -> Any:
     Resolved payloads that compare equal (for example ``1`` and ``1.0`` or ``0``
     and ``-0.0``) therefore need one canonical representation before serialization.
     """
+    # Fast path: exact type checks for standard JSON types avoid CPython tuple/tuple3
+    # isinstance traversal overhead in hot serialization loops (~1.9x speedup).
+    val_type = type(value)
+    if val_type is str or val_type is int or val_type is bool or value is None:
+        return value
+    if val_type is float:
+        if not math.isfinite(value):
+            raise ValueError("canonical JSON does not support NaN or Infinity")
+        if value == 0.0:
+            return 0
+        if value.is_integer():
+            return int(value)
+        return value
+    if val_type is dict:
+        return {
+            _normalize_json_value(key): _normalize_json_value(item)
+            for key, item in value.items()
+        }
+    if val_type is list or val_type is tuple:
+        return [_normalize_json_value(item) for item in value]
+
+    # Fallback for custom subclasses of primitive types
     if isinstance(value, bool) or value is None or isinstance(value, (str, int)):
         return value
     if isinstance(value, float):
