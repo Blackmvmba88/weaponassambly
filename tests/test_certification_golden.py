@@ -8,7 +8,6 @@ from weaponassambly.cli import cmd_certify
 from weaponassambly.models import BuildConfig
 from weaponassambly.resolver import resolve_build
 
-
 FIXTURE_PATH = Path(__file__).parent / "fixtures" / "tokyo_certification_golden.json"
 
 

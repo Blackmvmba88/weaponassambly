@@ -105,7 +105,9 @@ def test_certification_changes_when_resolved_payload_changes() -> None:
         assembly=baseline.assembly,
     )
 
-    assert certify_resolved_build(baseline).digest_sha256 != certify_resolved_build(changed).digest_sha256
+    digest_baseline = certify_resolved_build(baseline).digest_sha256
+    digest_changed = certify_resolved_build(changed).digest_sha256
+    assert digest_baseline != digest_changed
 
 
 def test_certification_dict_has_stable_contract() -> None:
