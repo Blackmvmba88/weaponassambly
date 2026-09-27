@@ -43,6 +43,13 @@ def validate_catalog(data: dict[str, Any]) -> CatalogValidationResult:
     if not isinstance(root, str) or not root:
         errors.append("root must be a non-empty string")
 
+    _validate_slots(data.get("slots"), errors)
+    _validate_cosmetics(data.get("cosmetics"), errors)
+
+    if not errors:
+        return OK_CATALOG_VALIDATION_RESULT
+    return CatalogValidationResult(ok=False, errors=tuple(errors))
+
 
 def _validate_slots(slots: Any, errors: list[str]) -> None:
     if not isinstance(slots, dict):
@@ -119,10 +126,6 @@ def _validate_cosmetics(cosmetics: Any, errors: list[str]) -> None:
 
         if len(values) != len(set(values)):
             errors.append(f"cosmetic {kind} contains duplicate values")
-
-    if not errors:
-        return OK_CATALOG_VALIDATION_RESULT
-    return CatalogValidationResult(ok=False, errors=tuple(errors))
 
 
 def _catalog_resources():
