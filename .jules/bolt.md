@@ -37,3 +37,7 @@ This is Bolt's journal for tracking critical learnings about performance optimiz
 ## 2025-05-22 - Branch Separation for Special-Case Vector Validation Loops
 **Learning:** In hot validation routines processing lists of fixed-length vectors (such as 3D transforms), placing field-dependent condition checks (e.g., `if field == "scale"`) inside the inner vector component loop evaluates branch conditions redundantly across all vector components. Separating non-specialized vector fields (`location`, `rotation_euler`) from special-case vector fields (`scale`) into separate loop branches eliminates per-component condition evaluation overhead while maintaining clear code structure (~1.31x speedup).
 **Action:** Separate special-case vector validation loops from standard component type checks when validating lists of vectors in hot path validators.
+
+## 2025-05-23 - Direct dict_keys Comparison with Precomputed Frozenset
+**Learning:** In Python, comparing `set(dict)` against `set(TUPLE)` in validation loops allocates two new `set` objects on every invocation. Comparing dictionary key views directly against a precomputed `frozenset` constant (`dict.keys() != FIELDS_SET`) evaluates set equality in C-level key view routines without allocating temporary set instances, resulting in a ~1.5x speedup (~33% time reduction).
+**Action:** Prefer `dict.keys() != FROZENSET_CONSTANT` for set equality checks on dictionaries in hot path validation routines.
