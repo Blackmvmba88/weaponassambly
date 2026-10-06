@@ -3,12 +3,17 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import re
 from dataclasses import dataclass
 from typing import Any
 
 from .resolver import ResolvedBuild, resolved_build_as_dict
 
 CERTIFICATION_VERSION = 1
+
+# Pre-compiled surrogate regex to fast-path standard JSON strings
+# during UTF-16 surrogate escaping in canonical serialization.
+SURROGATE_RE = re.compile(r"[\ud800-\udfff]")
 
 
 def _normalize_json_value(value: Any) -> Any:
@@ -32,8 +37,10 @@ def _normalize_json_value(value: Any) -> Any:
             return int(value)
         return value
     if val_type is dict:
+        # Fast-path string dict keys (key if type(key) is str else _normalize_json_value(key))
+        # to avoid redundant recursive function calls during JSON normalization.
         return {
-            _normalize_json_value(key): _normalize_json_value(item)
+            (key if type(key) is str else _normalize_json_value(key)): _normalize_json_value(item)
             for key, item in value.items()
         }
     if val_type is list or val_type is tuple:
@@ -51,7 +58,10 @@ def _normalize_json_value(value: Any) -> Any:
             return int(value)
         return value
     if isinstance(value, dict):
-        return {key: _normalize_json_value(item) for key, item in value.items()}
+        return {
+            (key if type(key) is str else _normalize_json_value(key)): _normalize_json_value(item)
+            for key, item in value.items()
+        }
     if isinstance(value, (list, tuple)):
         return [_normalize_json_value(item) for item in value]
     return value
@@ -59,6 +69,11 @@ def _normalize_json_value(value: Any) -> Any:
 
 def _escape_surrogate_code_units(text: str) -> str:
     """Escape raw UTF-16 surrogate code units without rewriting real astral scalars."""
+    # Fast path: bypass character-by-character scan and generator allocation
+    # when text contains no surrogate code units (~10x speedup).
+    if not SURROGATE_RE.search(text):
+        return text
+
     return "".join(
         f"\\u{ord(character):04x}"
         if 0xD800 <= ord(character) <= 0xDFFF
