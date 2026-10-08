@@ -12,7 +12,7 @@ from .resolver import ResolvedBuild, resolved_build_as_dict
 CERTIFICATION_VERSION = 1
 
 # Pre-compiled regex to fast-path surrogate check before string iteration (~12.3x speedup).
-SURROGATE_RE = re.compile("[\ud800-\udfff]")
+SURROGATE_RE = re.compile(r"[\uD800-\uDFFF]")
 
 
 def _normalize_json_value(value: Any) -> Any:
