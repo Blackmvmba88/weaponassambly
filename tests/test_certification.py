@@ -75,6 +75,15 @@ def test_canonical_json_escapes_lone_surrogates() -> None:
     assert len(sha256_digest(payload)) == 64
 
 
+def test_canonical_json_escapes_lone_surrogates_in_keys() -> None:
+    payload = {"display_\ud800": "phantom\ud800"}
+
+    canonical = canonical_json_bytes(payload)
+
+    assert canonical == b'{"display_\\ud800":"phantom\\ud800"}'
+    assert len(sha256_digest(payload)) == 64
+
+
 def test_canonical_json_distinguishes_astral_from_surrogate_pair() -> None:
     astral_payload = {"assembly": {"icon": "\U0001f600"}}
     surrogate_payload = {"assembly": {"icon": "\ud83d\ude00"}}
