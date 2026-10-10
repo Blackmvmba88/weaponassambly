@@ -92,7 +92,7 @@ def generate():
     scene.frame_start = 1
     scene.frame_end = 40
     scene.frame_set(40)
-    scene.render.engine = "BLENDER_EEVEE_NEXT"
+    scene.render.engine = "BLENDER_EEVEE"
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     bpy.ops.wm.save_as_mainfile(filepath=str(OUTPUT))
     print(f"[BLACKMAMBA] demo saved: {OUTPUT}; sockets={len(SOCKETS)}; modules={len(modules)}")
