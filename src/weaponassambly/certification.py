@@ -43,6 +43,9 @@ SURROGATE_RE = re.compile(r"[\ud800-\udfff]")
 
 SURROGATE_RE = re.compile(r"[\ud800-\udfff]")
 
+# Pre-compiled regex to quickly check for UTF-16 surrogate code units (U+D800 to U+DFFF).
+SURROGATE_RE = re.compile(r"[\ud800-\udfff]")
+
 
 def _normalize_json_value(value: Any) -> Any:
     """Normalize JSON values so semantically equivalent numbers hash identically.
