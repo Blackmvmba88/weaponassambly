@@ -41,6 +41,8 @@ SURROGATE_RE = re.compile(r"[\ud800-\udfff]")
 # Fast-pathing search before iterating avoids string scanning (~12x speedup).
 SURROGATE_RE = re.compile(r"[\ud800-\udfff]")
 
+SURROGATE_RE = re.compile(r"[\ud800-\udfff]")
+
 
 def _normalize_json_value(value: Any) -> Any:
     """Normalize JSON values so semantically equivalent numbers hash identically.
