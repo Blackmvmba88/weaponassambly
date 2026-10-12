@@ -12,6 +12,9 @@ FIELDS = (
 FIELDS_SET = frozenset(FIELDS)
 HEX64_RE = re.compile(r"[0-9a-f]{64}")
 
+FIELDS_SET = frozenset(FIELDS)
+DIGEST_RE = re.compile(r"[0-9a-f]{64}")
+
 
 def validate_certificate(data: Any) -> dict[str, Any]:
     # Fast path: direct dictionary type check and precomputed set keys view check avoid
