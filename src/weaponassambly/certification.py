@@ -12,6 +12,7 @@ from .resolver import ResolvedBuild, resolved_build_as_dict
 SURROGATE_RE = re.compile(r"[\uD800-\uDFFF]")
 
 CERTIFICATION_VERSION = 1
+SURROGATE_RE = re.compile(r"[\uD800-\uDFFF]")
 
 # Pre-compiled regex pattern to fast-path string checks for surrogate code units.
 SURROGATE_RE = re.compile(r"[\uD800-\uDFFF]")
