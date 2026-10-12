@@ -13,6 +13,9 @@ SURROGATE_RE = re.compile(r"[\uD800-\uDFFF]")
 
 CERTIFICATION_VERSION = 1
 
+# Pre-compiled regex pattern to fast-path string checks for surrogate code units.
+SURROGATE_RE = re.compile(r"[\uD800-\uDFFF]")
+
 
 def _normalize_json_value(value: Any) -> Any:
     """Normalize JSON values so semantically equivalent numbers hash identically.
@@ -35,8 +38,9 @@ def _normalize_json_value(value: Any) -> Any:
             return int(value)
         return value
     if val_type is dict:
+        # Fast-path string dict keys to avoid recursive function call overhead.
         return {
-            _normalize_json_value(key): _normalize_json_value(item)
+            key if type(key) is str else _normalize_json_value(key): _normalize_json_value(item)
             for key, item in value.items()
         }
     if val_type is list or val_type is tuple:
@@ -54,7 +58,10 @@ def _normalize_json_value(value: Any) -> Any:
             return int(value)
         return value
     if isinstance(value, dict):
-        return {key: _normalize_json_value(item) for key, item in value.items()}
+        return {
+            key if type(key) is str else _normalize_json_value(key): _normalize_json_value(item)
+            for key, item in value.items()
+        }
     if isinstance(value, (list, tuple)):
         return [_normalize_json_value(item) for item in value]
     return value
