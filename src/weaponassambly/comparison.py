@@ -47,7 +47,7 @@ def compare_certificates(expected: Any, actual: Any) -> tuple[bool, str]:
     lines = ["MISMATCH", ""]
     for field in FIELDS:
         if expected[field] == actual[field]:
-            if field in ("resolver_version", "certification_version"):
+            if field in VERSION_FIELDS:
                 lines.append(f"{field}: {expected[field]} == {actual[field]}")
         else:
             # JSON escaping keeps arbitrary metadata on a single deterministic line.
