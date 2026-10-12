@@ -37,6 +37,10 @@ SURROGATE_RE = re.compile(r"[\ud800-\udfff]")
 # Pre-compiled regex to fast-path surrogate code unit check before string scanning (~13x speedup).
 SURROGATE_RE = re.compile(r"[\ud800-\udfff]")
 
+# Pre-compile regex for UTF-16 surrogate code unit detection (U+D800 to U+DFFF).
+# Fast-pathing search before iterating avoids string scanning (~12x speedup).
+SURROGATE_RE = re.compile(r"[\ud800-\udfff]")
+
 
 def _normalize_json_value(value: Any) -> Any:
     """Normalize JSON values so semantically equivalent numbers hash identically.
