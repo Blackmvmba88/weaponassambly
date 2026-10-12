@@ -23,6 +23,10 @@ SURROGATE_RE = re.compile(r"[\ud800-\udfff]")
 # Pre-compiled regex to fast-path standard JSON strings during surrogate escaping (~57.5x speedup).
 SURROGATE_RE = re.compile(r"[\uD800-\uDFFF]")
 
+# Compile regex pattern once at module level to fast-path surrogate check before
+# executing expensive string reconstruction loops.
+SURROGATE_RE = re.compile(r"[\ud800-\udfff]")
+
 
 def _normalize_json_value(value: Any) -> Any:
     """Normalize JSON values so semantically equivalent numbers hash identically.
