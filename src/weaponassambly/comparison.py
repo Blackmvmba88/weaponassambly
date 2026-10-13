@@ -9,11 +9,9 @@ FIELDS = (
     "resolver_version", "certification_version", "platform", "display_name",
     "root", "module_count", "digest_sha256",
 )
+VERSION_FIELDS = ("resolver_version", "certification_version")
 FIELDS_SET = frozenset(FIELDS)
 HEX64_RE = re.compile(r"[0-9a-f]{64}")
-
-FIELDS_SET = frozenset(FIELDS)
-DIGEST_RE = re.compile(r"[0-9a-f]{64}")
 
 
 def validate_certificate(data: Any) -> dict[str, Any]:
