@@ -11,9 +11,10 @@ FIELDS = (
 )
 FIELDS_SET = frozenset(FIELDS)
 HEX64_RE = re.compile(r"[0-9a-f]{64}")
-
-FIELDS_SET = frozenset(FIELDS)
-DIGEST_RE = re.compile(r"[0-9a-f]{64}")
+VERSION_FIELDS = ("resolver_version", "certification_version")
+VERSION_FIELDS_SET = frozenset(VERSION_FIELDS)
+INT_FIELDS = ("resolver_version", "certification_version", "module_count")
+STR_FIELDS = ("platform", "display_name", "root", "digest_sha256")
 
 
 def validate_certificate(data: Any) -> dict[str, Any]:
@@ -25,11 +26,11 @@ def validate_certificate(data: Any) -> dict[str, Any]:
     # pre-compiled regex avoids set allocations and pattern lookup overhead (~1.5x speedup).
     if data.keys() != FIELDS_SET:
         raise ValueError("certificate must contain exactly the supported certificate fields")
-    for field in ("resolver_version", "certification_version", "module_count"):
+    for field in INT_FIELDS:
         val = data[field]
         if type(val) is not int or val < (0 if field == "module_count" else 1):
             raise ValueError(f"{field} must be a valid non-negative count or positive version")
-    for field in ("platform", "display_name", "root", "digest_sha256"):
+    for field in STR_FIELDS:
         val = data[field]
         if type(val) is not str and not isinstance(val, str):
             raise ValueError(f"{field} must be a string")
@@ -47,7 +48,7 @@ def compare_certificates(expected: Any, actual: Any) -> tuple[bool, str]:
     lines = ["MISMATCH", ""]
     for field in FIELDS:
         if expected[field] == actual[field]:
-            if field in VERSION_FIELDS:
+            if field in VERSION_FIELDS_SET:
                 lines.append(f"{field}: {expected[field]} == {actual[field]}")
         else:
             # JSON escaping keeps arbitrary metadata on a single deterministic line.
