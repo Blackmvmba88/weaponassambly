@@ -5,8 +5,8 @@ from typing import Any
 
 def sorted_dict_copy(value: dict[str, Any]) -> dict[str, Any]:
     """Copy a dict in deterministic key order, skipping sorting when it is unnecessary."""
-    # Fast path: return fresh dict for empty/single-item mappings using dict copy method
-    # to avoid constructor call and iteration overhead (~1.1x speedup).
+    # Fast path: returning {} for empty mappings and using value.copy() for 1-item mappings
+    # avoids dict() constructor call frame allocation and iteration overhead.
     if not value:
         return {}
     if len(value) == 1:

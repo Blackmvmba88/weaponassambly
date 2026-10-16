@@ -10,8 +10,8 @@ from typing import Any
 from .resolver import ResolvedBuild, resolved_build_as_dict
 
 CERTIFICATION_VERSION = 1
-
-# Pre-compiled regex to fast-path standard JSON strings during surrogate escaping (~12.3x speedup).
+# Pre-compile surrogate code unit search pattern to fast-path standard JSON strings
+# without surrogate code units (~12.3x speedup for _escape_surrogate_code_units).
 SURROGATE_RE = re.compile(r"[\uD800-\uDFFF]")
 
 
