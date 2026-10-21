@@ -50,10 +50,10 @@ def _normalize_json_value(value: Any) -> Any:
     if isinstance(value, bool) or value is None or isinstance(value, (str, int)):
         return value
     if isinstance(value, float):
-        if not math.isfinite(value):
-            raise ValueError("canonical JSON does not support NaN or Infinity")
         if value == 0.0:
             return 0
+        if not math.isfinite(value):
+            raise ValueError("canonical JSON does not support NaN or Infinity")
         if value.is_integer():
             return int(value)
         return value
