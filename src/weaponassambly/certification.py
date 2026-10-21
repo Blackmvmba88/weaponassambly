@@ -28,8 +28,8 @@ def _normalize_json_value(value: Any) -> Any:
     if val_type is str or val_type is int or val_type is bool or value is None:
         return value
     if val_type is float:
-        # Fast path: checking value == 0.0 first returns 0 directly for float zero
-        # without invoking math.isfinite C function calls (~1.04x speedup).
+        # Fast path: evaluate zero check before math.isfinite call to short-circuit
+        # float zero normalization (~1.04x speedup).
         if value == 0.0:
             return 0
         if not math.isfinite(value):
