@@ -10,7 +10,7 @@ FIELDS = (
     "root", "module_count", "digest_sha256",
 )
 FIELDS_SET = frozenset(FIELDS)
-VERSION_FIELDS_SET = frozenset(VERSION_FIELDS)
+VERSION_FIELDS_SET = frozenset(("resolver_version", "certification_version"))
 HEX64_RE = re.compile(r"[0-9a-f]{64}")
 
 
