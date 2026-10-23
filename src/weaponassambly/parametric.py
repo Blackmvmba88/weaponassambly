@@ -17,16 +17,20 @@ class ObjectDescriptor:
 
     @classmethod
     def from_mapping(cls, data: dict[str, Any]) -> ObjectDescriptor:
+        obj_id = data.get("id", "")
+        family = data.get("family", "")
+        semantic = data.get("semantic", "generic")
         parameters = data.get("parameters")
         connectors = data.get("connectors")
         materials = data.get("materials")
         modifiers = data.get("modifiers")
         metadata = data.get("metadata")
         # Avoid eager empty default dict/tuple evaluations and conversion calls for missing fields.
+        # Fast-path exact type checks to avoid redundant str() type constructor calls.
         return cls(
-            id=str(data.get("id", "")),
-            family=str(data.get("family", "")),
-            semantic=str(data.get("semantic", "generic")),
+            id=obj_id if type(obj_id) is str else str(obj_id),
+            family=family if type(family) is str else str(family),
+            semantic=semantic if type(semantic) is str else str(semantic),
             parameters=dict(parameters) if parameters else {},
             connectors=tuple(connectors) if connectors else (),
             materials=tuple(materials) if materials else (),
