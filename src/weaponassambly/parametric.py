@@ -17,6 +17,9 @@ class ObjectDescriptor:
 
     @classmethod
     def from_mapping(cls, data: dict[str, Any]) -> ObjectDescriptor:
+        obj_id = data.get("id", "")
+        family = data.get("family", "")
+        semantic = data.get("semantic", "generic")
         parameters = data.get("parameters")
         connectors = data.get("connectors")
         materials = data.get("materials")

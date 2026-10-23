@@ -23,6 +23,8 @@ class BuildConfig:
 
     @classmethod
     def from_mapping(cls, data: dict[str, Any]) -> BuildConfig:
+        sv = data.get("schema_version", 1)
+        pf = data.get("platform", "")
         modules = data.get("modules")
         cosmetics = data.get("cosmetics")
         assembly = data.get("assembly")
