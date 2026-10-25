@@ -25,9 +25,6 @@ class ObjectDescriptor:
         materials = data.get("materials")
         modifiers = data.get("modifiers")
         metadata = data.get("metadata")
-        obj_id = data.get("id", "")
-        family = data.get("family", "")
-        semantic = data.get("semantic", "generic")
         # Fast-path exact type checks and dict.copy() to eliminate str/dict constructor
         # calls on standard primitive and mapping fields (~1.1x - 1.2x speedup).
         params_dict = (
@@ -250,9 +247,9 @@ def axial_body_recipe(descriptor: ObjectDescriptor) -> dict[str, Any]:
             "cap_bottom": cap_bottom,
             "bevel": bevel,
         },
-        "connectors": list(descriptor.connectors),
-        "materials": list(descriptor.materials),
-        "modifiers": list(descriptor.modifiers),
+        "connectors": [*descriptor.connectors],
+        "materials": [*descriptor.materials],
+        "modifiers": [*descriptor.modifiers],
         "metadata": dict(descriptor.metadata),
     }
 
@@ -288,8 +285,8 @@ def box_body_recipe(descriptor: ObjectDescriptor) -> dict[str, Any]:
             "cap_top": cap_top,
             "cap_bottom": cap_bottom,
         },
-        "connectors": list(descriptor.connectors),
-        "materials": list(descriptor.materials),
-        "modifiers": list(descriptor.modifiers),
+        "connectors": [*descriptor.connectors],
+        "materials": [*descriptor.materials],
+        "modifiers": [*descriptor.modifiers],
         "metadata": dict(descriptor.metadata),
     }
