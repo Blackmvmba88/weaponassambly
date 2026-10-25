@@ -25,9 +25,6 @@ class ObjectDescriptor:
         materials = data.get("materials")
         modifiers = data.get("modifiers")
         metadata = data.get("metadata")
-        obj_id = data.get("id", "")
-        family = data.get("family", "")
-        semantic = data.get("semantic", "generic")
         # Fast-path exact type checks and dict.copy() to eliminate str/dict constructor
         # calls on standard primitive and mapping fields (~1.1x - 1.2x speedup).
         params_dict = (
