@@ -23,13 +23,12 @@ class BuildConfig:
 
     @classmethod
     def from_mapping(cls, data: dict[str, Any]) -> BuildConfig:
+        # Eliminate duplicate dictionary key lookups for schema_version and platform.
         sv = data.get("schema_version", 1)
         pf = data.get("platform", "")
         modules = data.get("modules")
         cosmetics = data.get("cosmetics")
         assembly = data.get("assembly")
-        sv = data.get("schema_version", 1)
-        pf = data.get("platform", "")
         # Fast-path exact type checks and dict.copy() to eliminate int/str constructor
         # calls and dict constructor dispatch on standard mapping fields (~1.2x speedup).
         mod_dict = (

@@ -17,6 +17,7 @@ class ObjectDescriptor:
 
     @classmethod
     def from_mapping(cls, data: dict[str, Any]) -> ObjectDescriptor:
+        # Eliminate duplicate dictionary key lookups for id, family, and semantic.
         obj_id = data.get("id", "")
         family = data.get("family", "")
         semantic = data.get("semantic", "generic")
@@ -25,9 +26,6 @@ class ObjectDescriptor:
         materials = data.get("materials")
         modifiers = data.get("modifiers")
         metadata = data.get("metadata")
-        obj_id = data.get("id", "")
-        family = data.get("family", "")
-        semantic = data.get("semantic", "generic")
         # Fast-path exact type checks and dict.copy() to eliminate str/dict constructor
         # calls on standard primitive and mapping fields (~1.1x - 1.2x speedup).
         params_dict = (
@@ -41,14 +39,30 @@ class ObjectDescriptor:
             else (dict(metadata) if metadata else {})
         )
 
+        conn_tuple = (
+            connectors
+            if type(connectors) is tuple
+            else (tuple(connectors) if connectors else ())
+        )
+        mat_tuple = (
+            materials
+            if type(materials) is tuple
+            else (tuple(materials) if materials else ())
+        )
+        mod_tuple = (
+            modifiers
+            if type(modifiers) is tuple
+            else (tuple(modifiers) if modifiers else ())
+        )
+
         return cls(
             id=obj_id if type(obj_id) is str else str(obj_id),
             family=family if type(family) is str else str(family),
             semantic=semantic if type(semantic) is str else str(semantic),
             parameters=params_dict,
-            connectors=tuple(connectors) if connectors else (),
-            materials=tuple(materials) if materials else (),
-            modifiers=tuple(modifiers) if modifiers else (),
+            connectors=conn_tuple,
+            materials=mat_tuple,
+            modifiers=mod_tuple,
             metadata=meta_dict,
         )
 
