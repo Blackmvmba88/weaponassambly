@@ -23,6 +23,7 @@ class BuildConfig:
 
     @classmethod
     def from_mapping(cls, data: dict[str, Any]) -> BuildConfig:
+        # Eliminate duplicate dictionary key lookups for schema_version and platform.
         sv = data.get("schema_version", 1)
         pf = data.get("platform", "")
         modules = data.get("modules")

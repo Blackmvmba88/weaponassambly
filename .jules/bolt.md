@@ -54,6 +54,6 @@ This is Bolt's journal for tracking critical learnings about performance optimiz
 **Learning:** In canonical JSON normalization (`_normalize_json_value` in `certification.py`), evaluating `if value == 0.0:` before `if not math.isfinite(value):` short-circuits float zero normalization directly to `0` without invoking C extension function `math.isfinite()` on zero values (~1.06x speedup for JSON normalization).
 **Action:** Evaluate `if value == 0.0:` before `if not math.isfinite(value):` in float normalization functions when float zeros are frequent.
 
-## 2025-05-27 - Eliminating Duplicate Key Lookups in Mapping Constructors
-**Learning:** Duplicate dictionary key lookups (`data.get(...)`) inside mapping constructors (`BuildConfig.from_mapping` and `ObjectDescriptor.from_mapping`) add redundant hash lookups and function calls on every object initialization. Removing duplicate lookup lines speeds up mapping initialization by ~5.5%.
-**Action:** Always audit mapping constructors and factory methods for duplicate `dict.get(...)` calls to avoid redundant hash lookups.
+## 2025-05-27 - Eliminating Duplicate Dictionary Key Lookups in Mapping Constructors
+**Learning:** Redundant key lookups (e.g. calling `data.get(...)` twice for identical keys) in mapping constructors (`BuildConfig.from_mapping` and `ObjectDescriptor.from_mapping`) add extra dictionary lookup overhead. Eliminating duplicate dictionary key lookups and fast-pathing exact tuple checks (`type(x) is tuple`) improves object instantiation speed by ~5.5%.
+**Action:** Check mapping constructors for duplicate `data.get(...)` key lookups and avoid calling `tuple()` constructor when input is already a tuple.
