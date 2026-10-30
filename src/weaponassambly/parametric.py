@@ -264,9 +264,10 @@ def axial_body_recipe(descriptor: ObjectDescriptor) -> dict[str, Any]:
             "cap_bottom": cap_bottom,
             "bevel": bevel,
         },
-        "connectors": list(descriptor.connectors),
-        "materials": list(descriptor.materials),
-        "modifiers": list(descriptor.modifiers),
+        # Fast-path list unpacking [*sequence] avoids global list function lookup overhead.
+        "connectors": [*descriptor.connectors],
+        "materials": [*descriptor.materials],
+        "modifiers": [*descriptor.modifiers],
         "metadata": dict(descriptor.metadata),
     }
 
@@ -302,8 +303,9 @@ def box_body_recipe(descriptor: ObjectDescriptor) -> dict[str, Any]:
             "cap_top": cap_top,
             "cap_bottom": cap_bottom,
         },
-        "connectors": list(descriptor.connectors),
-        "materials": list(descriptor.materials),
-        "modifiers": list(descriptor.modifiers),
+        # Fast-path list unpacking [*sequence] avoids global list function lookup overhead.
+        "connectors": [*descriptor.connectors],
+        "materials": [*descriptor.materials],
+        "modifiers": [*descriptor.modifiers],
         "metadata": dict(descriptor.metadata),
     }
