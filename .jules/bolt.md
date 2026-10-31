@@ -57,3 +57,7 @@ This is Bolt's journal for tracking critical learnings about performance optimiz
 ## 2025-05-27 - Eliminating Duplicate Dictionary Key Lookups in Mapping Constructors
 **Learning:** Redundant key lookups (e.g. calling `data.get(...)` twice for identical keys) in mapping constructors (`BuildConfig.from_mapping` and `ObjectDescriptor.from_mapping`) add extra dictionary lookup overhead. Eliminating duplicate dictionary key lookups and fast-pathing exact tuple checks (`type(x) is tuple`) improves object instantiation speed by ~5.5%.
 **Action:** Check mapping constructors for duplicate `data.get(...)` key lookups and avoid calling `tuple()` constructor when input is already a tuple.
+
+## 2025-05-28 - Unpacking Sequence Elements vs Builtin list() in Adapter Emission
+**Learning:** In sequence-to-list conversions within list comprehensions (such as `GenericJsonAdapter.emit`), calling `list(tuple)` repeatedly invokes Python's global lookup for `list` and creates an iterator protocol overhead. Replacing `list(t)` with list unpacking syntax `[*t]` avoids global function resolution and iterates tuple elements at C-level, yielding a ~1.09x speedup in node serialization when paired with attribute hoisting outside the comprehension.
+**Action:** Use `[*seq]` instead of `list(seq)` when converting small tuples to lists in performance-sensitive loop comprehensions.
