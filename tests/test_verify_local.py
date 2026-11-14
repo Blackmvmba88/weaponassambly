@@ -114,3 +114,17 @@ def test_resolve_rejects_invalid_json(tmp_path: Path, monkeypatch: pytest.Monkey
     report, evidence = _report(root)
     assert report["checks"][0]["status"] == "failed"
     assert "invalid JSON" in (evidence / "resolve.log").read_text()
+
+
+def test_runs_preserve_history(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _root(tmp_path)
+
+    def fake_run(command: list[str], **kwargs: object) -> CompletedProcess[str]:
+        return CompletedProcess(command, 0, "OK", "")
+
+    monkeypatch.setattr(verifier.subprocess, "run", fake_run)
+    assert verifier.main(["--root", str(root), "--only", "ruff"]) == 0
+    assert verifier.main(["--root", str(root), "--only", "ruff"]) == 0
+    reports = list((root / ".verification/local").glob("*/report.json"))
+    assert len(reports) == 2
+    assert reports[0].parent != reports[1].parent
