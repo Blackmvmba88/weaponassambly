@@ -1,0 +1,21 @@
+{
+  "id": "OBJ_ENV_TILE_001",
+  "family": "box_body",
+  "semantic": "decorative_environment_tile",
+  "parameters": {
+    "width": 1.2,
+    "height": 0.8,
+    "depth": 0.15,
+    "wall": 0,
+    "chamfer": 0.02,
+    "hollow": false,
+    "cap_top": true,
+    "cap_bottom": true
+  },
+  "connectors": [],
+  "materials": [],
+  "modifiers": [],
+  "metadata": {
+    "role": "fictional_environment_visual"
+  }
+}
