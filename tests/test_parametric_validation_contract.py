@@ -75,7 +75,9 @@ def test_false_flags_remain_valid_and_preserved(family: str) -> None:
         id="OBJ_VALID", family=family, semantic="prop", parameters=params
     )
     assert validate_descriptor(descriptor).ok
-    recipe = axial_body_recipe(descriptor) if family == "axial_body" else box_body_recipe(descriptor)
+    recipe = (
+        axial_body_recipe(descriptor) if family == "axial_body" else box_body_recipe(descriptor)
+    )
     assert recipe["mesh"]["cap_top"] is False
     assert recipe["mesh"]["cap_bottom"] is False
     if family == "box_body":
