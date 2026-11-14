@@ -41,3 +41,6 @@ venv/
 
 # Egg-info
 *.egg-info/
+
+# Local verification evidence (never commit run logs)
+.verification/
