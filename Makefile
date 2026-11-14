@@ -1,6 +1,6 @@
 PYTHON ?= python3
 
-.PHONY: setup test lint check validate catalog-validate scene-validate resolve blender-bootstrap
+.PHONY: setup test lint check validate catalog-validate scene-validate resolve blender-bootstrap verify-local
 
 setup:
 	$(PYTHON) -m pip install -e '.[dev]'
@@ -27,3 +27,6 @@ check: lint test catalog-validate validate scene-validate resolve
 
 blender-bootstrap:
 	blender --background --python scripts/bootstrap_scene.py
+
+verify-local:
+	$(PYTHON) scripts/verify_local.py
