@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -79,12 +80,13 @@ OK_PARAMETRIC_VALIDATION_RESULT = ParametricValidationResult(ok=True, errors=())
 
 
 def _number(value: object) -> bool:
-    value_type = type(value)
-    if value_type is int or value_type is float:
-        return True
-    if value_type is bool:
+    """Accept finite Python numbers, but never booleans or unrepresentable values."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
         return False
-    return isinstance(value, (int, float))
+    try:
+        return math.isfinite(value)
+    except (OverflowError, ValueError):
+        return False
 
 
 def _integer(value: object) -> bool:
@@ -138,6 +140,10 @@ def _validate_axial_body(parameters: dict[str, object]) -> list[str]:
         errors.append("wall must be a number")
     if not _number(bevel):
         errors.append("bevel must be a number")
+
+    for name in ("cap_top", "cap_bottom"):
+        if name in parameters and type(parameters[name]) is not bool:
+            errors.append(f"{name} must be a boolean")
 
     if errors:
         return errors
@@ -203,6 +209,10 @@ def _validate_box_body(parameters: dict[str, object]) -> list[str]:
         errors.append("chamfer is required")
     elif not _number(chamfer):
         errors.append("chamfer must be a number")
+
+    for name in ("hollow", "cap_top", "cap_bottom"):
+        if name in parameters and type(parameters[name]) is not bool:
+            errors.append(f"{name} must be a boolean")
 
     if errors:
         return errors
