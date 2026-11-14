@@ -346,3 +346,24 @@ renderer / game engine / visualization
 The first cylinder is therefore not just a cylinder.
 
 It is the first word in the BlackMamba geometric language.
+
+## Runtime validation guarantees (TOKYO)
+
+The `axial_body` and `box_body` validators reject non-finite numeric values
+(`NaN`, positive/negative infinity, and integers too large for finite float
+conversion). This prevents invalid dimensions from reaching downstream recipes.
+
+Optional mesh switches must be **JSON booleans** (not `0`, `1`, `null`, or
+strings such as `"false"`):
+
+- `axial_body`: `cap_top`, `cap_bottom`;
+- `box_body`: `hollow`, `cap_top`, `cap_bottom`.
+
+The documented example is a nonfunctional decorative environment tile:
+
+```bash
+bmwa parametric-validate examples/parametric_box_body.json
+```
+
+These contracts govern data consistency for virtual objects; they do not
+encode manufacturing tolerances or real-world equipment behavior.
