@@ -348,7 +348,7 @@ También puedes utilizar los targets disponibles en el `Makefile` para ejecutar 
 ## Documentación
 
 - [`docs/architecture.md`](docs/architecture.md) — contratos y flujo del sistema.
-- [`docs/parametric-object-language.md`](docs/parametric-object-language.md) — dirección del lenguaje paramétrico.
+- [`docs/PARAMETRIC_OBJECT_LANGUAGE.md`](docs/PARAMETRIC_OBJECT_LANGUAGE.md) — dirección del lenguaje paramétrico.
 - [`docs/`](docs/) — decisiones y especificaciones adicionales.
 
 ## Licencia
