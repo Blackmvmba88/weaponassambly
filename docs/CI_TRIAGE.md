@@ -68,3 +68,11 @@ Decision (ready / blocked):
 ## Scope boundary
 
 This effort is limited to CI diagnosis, software quality and fictional game-asset data. No guidance on physical weapon construction, parts compatibility or operational performance belongs in this checklist.
+
+## Diff review: PR #203 versus #204 (2026-11-20)
+
+**Confirmed overlap:** both PRs modify only `.jules/bolt.md` and `src/weaponassambly/_mapping.py`. In the executable code, both replace `dict(sorted(value.items()))` with exactly `{k: value[k] for k in sorted(value)}` inside `sorted_dict_copy`. They differ only in explanatory comments and journal wording. Both PRs report GitHub `mergeable: true` against the current base, but that is **not** a test result.
+
+**Integration recommendation:** select **one** PR after checking its source and tests; do **not** merge both independently. If one lands, close the redundant PR with a reference to the merged commit. Retain `tests/test_mapping.py` regression coverage; check the empty, singleton, unordered and fresh-copy behaviors.
+
+The current assistant execution container cannot resolve `github.com` for a real clone, so no full-source pytest or Ruff result can be claimed here. Connector API inspection of the branch diffs and repository files **did** complete.
